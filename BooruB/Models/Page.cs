@@ -40,7 +40,7 @@ namespace BooruB.Models
         {
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
             string key = "page_" + GetHash(App.Settings.current_site + App.Settings.current_tag_code);
-            System.Diagnostics.Debug.WriteLine("key:" + key);
+            //System.Diagnostics.Debug.WriteLine("key:" + key);
             if (localSettings.Values.ContainsKey(key))
             {
                 Page page = Load(localSettings.Values[key].ToString());
@@ -71,6 +71,16 @@ namespace BooruB.Models
             using (HashAlgorithm algorithm = MD5.Create())
             {
                 value = Encoding.UTF8.GetString(algorithm.ComputeHash(Encoding.UTF8.GetBytes(value)));
+            }
+            return value;
+        }
+
+        public static string GetHash2(string value)
+        {
+            using (HashAlgorithm algorithm = MD5.Create())
+            {
+                var result = algorithm.ComputeHash(Encoding.UTF8.GetBytes(value));
+                value = string.Join(string.Empty, result.Select(x => x.ToString("x2")));
             }
             return value;
         }

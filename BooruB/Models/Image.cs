@@ -53,7 +53,7 @@ namespace BooruB.Models
                 return this;
             }
 
-            Helpers.LoadingAnimation.Show();
+            Pages.MainPage.ShowListLoading();
 
             string response = await App.Settings.Query.Get(App.Settings.GetCurrentLink() + DetaillPageUrl);
             //System.Diagnostics.Debug.WriteLine("DetaillPageUrl:" + App.Settings.current_site + DetaillPageUrl);
@@ -66,12 +66,12 @@ namespace BooruB.Models
                 DetailImageUrl = matchDIU.Groups[1].Value;
                 if (DetaillPageUrl == null)
                 {
-                    Helpers.LoadingAnimation.Hide();
+                    Pages.MainPage.HideListLoading();
                     return null;
                 }
                 if (DetaillPageUrl.Length == 0)
                 {
-                    Helpers.LoadingAnimation.Hide();
+                    Pages.MainPage.HideListLoading();
                     return null;
                 }
                 //System.Diagnostics.Debug.WriteLine("matchDIU:" + matchDIU);
@@ -202,11 +202,11 @@ namespace BooruB.Models
             }
             catch (Exception)
             {
-                Helpers.LoadingAnimation.Hide();
+                Pages.MainPage.HideListLoading();
                 return null;
             }
 
-            Helpers.LoadingAnimation.Hide();
+            Pages.MainPage.HideListLoading();
             return this;
         }
     }

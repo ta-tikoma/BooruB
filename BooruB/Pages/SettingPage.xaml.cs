@@ -163,5 +163,11 @@ namespace BooruB.Pages
                 (sender as TextBox).Text = await dataPackageView.GetTextAsync();
             }
         }
+
+        private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            double width = Window.Current.Bounds.Width;
+            App.Settings.images_in_row = (int)(width / App.Settings.max_side_size);
+        }
     }
 }

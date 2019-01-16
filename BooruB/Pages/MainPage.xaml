@@ -28,6 +28,28 @@
             <FadeInThemeAnimation Storyboard.TargetName="LoadingButtonIcon" />
         </Storyboard>
 
+        <Storyboard x:Name="SwipeAnimation">
+            <DoubleAnimation
+                Storyboard.TargetName="CloseLineTransform"
+                Storyboard.TargetProperty="ScaleX"
+                Completed="SwipeAnimation_Completed"
+                From="0"
+                To="42"
+                Duration="0:0:0.5"/>
+            <DoubleAnimation
+                Storyboard.TargetName="PrevLineTransform"
+                Storyboard.TargetProperty="ScaleX"
+                From="0"
+                To="32"
+                Duration="0:0:0.5"/>
+            <DoubleAnimation
+                Storyboard.TargetName="NextLineTransform"
+                Storyboard.TargetProperty="ScaleX"
+                From="0"
+                To="34"
+                Duration="0:0:0.5"/>
+        </Storyboard>
+
         <Storyboard x:Name="ShowImage">
             <DoubleAnimation x:Name="ShowImageHeight"
                 Storyboard.TargetName="DetailImage"
@@ -36,6 +58,7 @@
             <DoubleAnimation
                 Storyboard.TargetName="DetailImage"
                 Storyboard.TargetProperty="Opacity"
+                Completed="ImageShow_Completed"
                 To="1.0" Duration="0:0:1"/>
             <DoubleAnimation
                 Storyboard.TargetName="DetailImageProgressTextBlock"
@@ -140,9 +163,18 @@
         <Storyboard x:Name="LeftToRightEnd">
             <DoubleAnimation
                 x:Name="LeftToRightEndAnimation"
+                Completed="LeftToRightEndCompleted"
                 Storyboard.TargetName="DetailScrollViewerTranslateY"
                 Storyboard.TargetProperty="TranslateX"
-                To="0" Duration="0:0:0.5"/>
+                To="0" Duration="0:0:0.7"/>
+        </Storyboard>
+
+        <Storyboard x:Name="DetailScrollViewerTranslateYToZero">
+            <DoubleAnimation
+                Completed="DetailScrollViewerTranslateYToZero_Completed"
+                Storyboard.TargetName="DetailScrollViewerTranslateY"
+                Storyboard.TargetProperty="TranslateY"
+                To="0" Duration="0:0:0.3"/>
         </Storyboard>
 
         <Storyboard x:Name="ShowSearch">
@@ -171,37 +203,17 @@
                 To="0" Duration="0:0:0.25"/>
         </Storyboard>
 
-        <Storyboard x:Name="ShowNothingFound">
+        <Storyboard x:Name="ShowNothingFoundText">
             <DoubleAnimation
                 Storyboard.TargetName="NothingFound"
                 Storyboard.TargetProperty="Opacity"
                 To="1.0" Duration="0:0:0.5"/>
         </Storyboard>
-        <Storyboard x:Name="HideNothingFound">
+        <Storyboard x:Name="HideNothingFoundText">
             <DoubleAnimation
                 Storyboard.TargetName="NothingFound"
                 Storyboard.TargetProperty="Opacity"
                 To="0.0" Duration="0:0:0.5"/>
-        </Storyboard>
-
-        <Storyboard x:Name="SaveIconToDown">
-            <DoubleAnimation
-                Storyboard.TargetName="DetailSaveIconTransform"
-                Storyboard.TargetProperty="TranslateY"
-                To="30" Duration="0:0:0.4"/>
-        </Storyboard>
-        <Storyboard x:Name="SaveIconFromUp">
-            <DoubleAnimation
-                Storyboard.TargetName="DetailSaveIconTransform"
-                Storyboard.TargetProperty="TranslateY"
-                From="30" To="0" Duration="0:0:0.4"/>
-        </Storyboard>
-        <Storyboard x:Name="SaveIconRotation">
-            <DoubleAnimation
-                Storyboard.TargetName="DetailSaveIconTransform"
-                Storyboard.TargetProperty="Rotation"
-                RepeatBehavior="Forever"
-                From="0" To="360" Duration="0:0:1"/>
         </Storyboard>
 
         <Storyboard x:Name="AcceptLinkIconTransformFromUp">
@@ -363,108 +375,133 @@
                 x:Name="DetailBorder"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
-                Tapped="DetailBorder_Tapped"
+                Tapped="DetailScrollViewer_Tapped"
                 Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
                 Opacity="0.0"/>
 
-            <TextBlock Text="CLOSE" Margin="0,10" HorizontalAlignment="Center"/>
-            
-            <ScrollViewer x:Name="DetailScrollViewer"
-                        MaxWidth="{Binding Source={StaticResource Settings}, Path=max_detail_width, Mode=TwoWay }"
-                        VerticalAlignment="Top"
-                        HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled"
+            <Grid x:Name="SwipeTextPanel"
+                  VerticalAlignment="Top"
+                  Visibility="Collapsed"
+                  Margin="13, 10, 13, 60" MaxWidth="{Binding Source={StaticResource Settings}, Path=max_detail_width, Mode=TwoWay }">
+
+                <TextBlock x:Name="CloseTextBlock" Text="CLOSE" VerticalAlignment="Top" Margin="0,10" HorizontalAlignment="Center"/>
+                <Rectangle x:Name="CloseRectangle" Fill="White" VerticalAlignment="Top" Margin="0,30,0,0" HorizontalAlignment="Center" Height="2" Width="1">
+                    <Rectangle.RenderTransform>
+                        <CompositeTransform  x:Name="CloseLineTransform" ScaleX="0" CenterX="0.5"/>
+                    </Rectangle.RenderTransform>
+                </Rectangle>
+
+                <TextBlock x:Name="PrevTextBlock" Text="PREV" VerticalAlignment="Center" Margin="0,10" HorizontalAlignment="Left"/>
+                <Rectangle x:Name="PrevRectangle" Fill="White" VerticalAlignment="Center" Margin="16,30,0,0" HorizontalAlignment="Left" Height="2" Width="1">
+                    <Rectangle.RenderTransform>
+                        <CompositeTransform  x:Name="PrevLineTransform" ScaleX="0" CenterX="0.5"/>
+                    </Rectangle.RenderTransform>
+                </Rectangle>
+
+                <TextBlock x:Name="NextTextBlock" Text="NEXT" VerticalAlignment="Center" Margin="0,10" HorizontalAlignment="Right"/>
+                <Rectangle x:Name="NextRectangle" Fill="White" VerticalAlignment="Center" Margin="0,30,18,0" HorizontalAlignment="Right" Height="2" Width="1">
+                    <Rectangle.RenderTransform>
+                        <CompositeTransform  x:Name="NextLineTransform" ScaleX="0" CenterX="0.5"/>
+                    </Rectangle.RenderTransform>
+                </Rectangle>
+            </Grid>
+
+            <!--<ScrollViewer x:Name="DetailScrollViewer"
+                          MaxWidth="{Binding Source={StaticResource Settings}, Path=max_detail_width, Mode=TwoWay }"
+                          ViewChanged="DetailScrollViewer_ViewChanged"
+                          DirectManipulationStarted="DetailScrollViewer_DirectManipulationStarted"
+                          DirectManipulationCompleted="DetailScrollViewer_DirectManipulationCompleted"
+                        VerticalAlignment="Stretch"
+                        Margin="10, 10, 10, 60" 
+                        BorderThickness="3" BorderBrush="#66000000" 
+                        HorizontalScrollBarVisibility="Hidden" HorizontalScrollMode="Enabled"
                         VerticalScrollBarVisibility="Hidden" VerticalScrollMode="Enabled">
                 <ScrollViewer.RenderTransform>
                     <CompositeTransform x:Name="DetailScrollViewerTranslateY" TranslateY="-280" TranslateX="0"/>
-                </ScrollViewer.RenderTransform>
-                <StackPanel x:Name="DetailStackPanel"
-                        Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-                        Margin="10, 40, 10, 60" BorderThickness="3" BorderBrush="#66000000">
-                    <Grid>
-                        <TextBlock x:Name="DetailImageProgressTextBlock" Loaded="DetailImageProgressLoaded" Text="0 %" Height="30" Margin="0,70,0,70" HorizontalAlignment="Center" />
-                        <!--<ProgressRing IsActive="True" Width="30" Height="30" Margin="50"/>-->
-                        <Image x:Name="DetailImage" Opacity="0.0" HorizontalAlignment="Center" DataContext="{Binding}" DataContextChanged="DetailImage_DataContextChanged"/>
-                        <Button x:Name="DetailZoomButton" Click="ZoomOpen"
-                                Background="Transparent"
-                                Height="43"
-                                Width="43"
-                                Opacity="0"
-                                HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                            <SymbolIcon Symbol="ZoomIn" Foreground="Gray"/>
-                        </Button>
-                    </Grid>
-                    <Pivot x:Name="DetailPivot">
-                        <Pivot.HeaderTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding}" FontSize="12" />
-                            </DataTemplate>
-                        </Pivot.HeaderTemplate>
-                        <PivotItem Header="TAGS">
-                            <GridView SelectionMode="None" ItemsSource="{Binding Tags}"
-                                        Margin="0,10,0,4"
-                                        ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
-                                <GridView.ItemContainerStyle>
-                                    <Style TargetType="GridViewItem">
-                                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                        <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                        <Setter Property="Margin" Value="0,0,3,3"/>
-                                        <Setter Property="MinHeight" Value="10"/>
-                                        <Setter Property="MinWidth" Value="10"/>
-                                    </Style>
-                                </GridView.ItemContainerStyle>
-                                <GridView.ItemTemplate>
-                                    <DataTemplate x:DataType="models:Tag">
-                                        <StackPanel Orientation="Horizontal">
-                                            <Button Margin="0" Padding="0" Background="Transparent" DataContext="{Binding}" Click="TagClick" Holding="TagHolding">
-                                                <StackPanel Orientation="Horizontal" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}">
-                                                    <TextBlock Text="{Binding Name}" Margin="7,2,7,0"/>
-                                                    <StackPanel Padding="5,2,5,4" Background="{ThemeResource SystemControlBackgroundBaseMediumLowBrush}">
-                                                        <TextBlock Text="{Binding Count}"/>
+                </ScrollViewer.RenderTransform>-->
+                <Grid x:Name="DetailScrollViewer"
+                                    MaxWidth="{Binding Source={StaticResource Settings}, Path=max_detail_width, Mode=TwoWay }"
+                                    Margin="10, 15, 10, 60"
+                                               VerticalAlignment="Top"
+                                               ManipulationMode="System,TranslateX,TranslateY"
+                                               ManipulationDelta="DetailScrollViewer_ManipulationDelta"
+                                               ManipulationCompleted="DetailScrollViewer_ManipulationCompleted"
+                                               ManipulationStarted="DetailScrollViewer_ManipulationStarted"
+                                               Background="#66000000"
+                                    BorderThickness="3" BorderBrush="#66000000" 
+                                    >
+                    <Grid.RenderTransform>
+                        <CompositeTransform x:Name="DetailScrollViewerTranslateY" TranslateY="-280" TranslateX="0"/>
+                    </Grid.RenderTransform>
+                    
+
+                    
+
+                    <StackPanel x:Name="DetailStackPanel"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Top"
+                                Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+                        <StackPanel.RenderTransform>
+                            <CompositeTransform x:Name="DetailStackPanelTranslateY" TranslateY="0" TranslateX="0"/>
+                        </StackPanel.RenderTransform>
+
+                        <Grid>
+                            <TextBlock x:Name="DetailImageProgressTextBlock" Loaded="DetailImageProgressLoaded" Text="0 %" Height="30" Margin="0,70,0,70" HorizontalAlignment="Center" />
+                            <Image x:Name="DetailImage" Opacity="0.0" HorizontalAlignment="Center" DataContext="{Binding}" DataContextChanged="DetailImage_DataContextChanged"/>
+                            <Button x:Name="DetailZoomButton" Click="ZoomOpen"
+                                    Background="Transparent"
+                                    Height="43"
+                                    Width="43"
+                                    Opacity="0"
+                                    HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                                <SymbolIcon Symbol="ZoomIn" Foreground="Gray"/>
+                            </Button>
+                        </Grid>
+                        <Pivot x:Name="DetailPivot">
+                            <Pivot.HeaderTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" FontSize="12" />
+                                </DataTemplate>
+                            </Pivot.HeaderTemplate>
+                            <PivotItem Header="TAGS">
+                                <GridView SelectionMode="None" ItemsSource="{Binding Tags}"
+                                            Margin="0,10,0,4"
+                                            ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
+                                    <GridView.ItemContainerStyle>
+                                        <Style TargetType="GridViewItem">
+                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                            <Setter Property="Margin" Value="0,0,3,3"/>
+                                            <Setter Property="MinHeight" Value="10"/>
+                                            <Setter Property="MinWidth" Value="10"/>
+                                        </Style>
+                                    </GridView.ItemContainerStyle>
+                                    <GridView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:Tag">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Margin="0" Padding="0" Background="Transparent" DataContext="{Binding}" Click="TagClick" Holding="TagHolding">
+                                                    <StackPanel Orientation="Horizontal" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}">
+                                                        <TextBlock Text="{Binding Name}" Margin="7,2,7,0"/>
+                                                        <StackPanel Padding="5,2,5,4" Background="{ThemeResource SystemControlBackgroundBaseMediumLowBrush}">
+                                                            <TextBlock Text="{Binding Count}"/>
+                                                        </StackPanel>
                                                     </StackPanel>
-                                                </StackPanel>
-                                            </Button>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </GridView.ItemTemplate>
-                                <GridView.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <controls:WrapPanel Orientation="Horizontal"/>
-                                    </ItemsPanelTemplate>
-                                </GridView.ItemsPanel>
-                            </GridView>
-                        </PivotItem>
-                        <PivotItem Header="STATISTICS">
-                            <ListView ItemsSource="{Binding Statistics}"
-                                        SelectionMode="None"
-                                        ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled"
-                                        Margin="0,10,0,20">
-                                <ListView.ItemContainerStyle>
-                                    <Style TargetType="ListViewItem">
-                                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                        <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                        <Setter Property="Margin" Value="0,0,1,1"/>
-                                        <Setter Property="MinHeight" Value="10"/>
-                                        <Setter Property="MinWidth" Value="10"/>
-                                    </Style>
-                                </ListView.ItemContainerStyle>
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock>
-                                            <Run Text="{Binding Name}" FontWeight="Bold" />
-                                            <Run Text=":" />
-                                            <Run Text="{Binding Value}" />
-                                        </TextBlock>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-                        </PivotItem>
-                        <PivotItem Header="{Binding CommentsTitle}">
-                            <Grid>
-                                <TextBlock HorizontalAlignment="Center" Margin="0,20,0,30" Visibility="{Binding NoComments}" Text="NO COMMENTS"/>
-                                <ListView ItemsSource="{Binding Comments}"
-                                        SelectionMode="None"
-                                        ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled"
-                                        Margin="0,10,0,20">
+                                                </Button>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </GridView.ItemTemplate>
+                                    <GridView.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <controls:WrapPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </GridView.ItemsPanel>
+                                </GridView>
+                            </PivotItem>
+                            <PivotItem Header="STATISTICS">
+                                <ListView ItemsSource="{Binding Statistics}"
+                                            SelectionMode="None"
+                                            ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled"
+                                            Margin="0,10,0,20">
                                     <ListView.ItemContainerStyle>
                                         <Style TargetType="ListViewItem">
                                             <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -476,49 +513,84 @@
                                     </ListView.ItemContainerStyle>
                                     <ListView.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,20" IsTextSelectionEnabled="True">
-                                                <Run Text="{Binding Author}" FontWeight="Bold" />
+                                            <TextBlock>
+                                                <Run Text="{Binding Name}" FontWeight="Bold" />
                                                 <Run Text=":" />
-                                                <Run Text="{Binding Date}" FontSize="12" />
-                                                <LineBreak/>
-                                                <Run Text="{Binding Text}" />
+                                                <Run Text="{Binding Value}" />
                                             </TextBlock>
                                         </DataTemplate>
                                     </ListView.ItemTemplate>
                                 </ListView>
-                            </Grid>
-                        </PivotItem>
-                    </Pivot>
-                </StackPanel>
-            </ScrollViewer>
+                            </PivotItem>
+                            <PivotItem Header="{Binding CommentsTitle}">
+                                <Grid>
+                                    <ListView ItemsSource="{Binding Comments}"
+                                            SelectionMode="None"
+                                            ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled"
+                                            Margin="0,10,0,20">
+                                        <ListView.HeaderTemplate>
+                                            <DataTemplate>
+                                                <StackPanel>
+                                                    <TextBlock HorizontalAlignment="Center" Margin="0,20,0,30" Visibility="{Binding NoComments}" Text="NO COMMENTS"/>
+                                                    <Grid>
+                                                        <TextBox Name="tbMultiLine" PlaceholderText="Add your comment"
+                                                             Padding="4,2,40,2"
+                                                          TextWrapping="Wrap"
+                                                          AcceptsReturn="True"/>
+                                                        <Button Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+                                                                BorderBrush="{ThemeResource TextBoxBackgroundThemeBrush}"
+                                                                BorderThickness="0,2,2,2"
+                                                                HorizontalAlignment="Right" VerticalAlignment="Stretch">
+                                                            <SymbolIcon Symbol="Send"/>
+                                                        </Button>
+                                                    </Grid>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListView.HeaderTemplate>
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                                <Setter Property="Margin" Value="0,0,1,1"/>
+                                                <Setter Property="MinHeight" Value="10"/>
+                                                <Setter Property="MinWidth" Value="10"/>
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,20" IsTextSelectionEnabled="True">
+                                                    <Run Text="{Binding Author}" FontWeight="Bold" />
+                                                    <Run Text=":" />
+                                                    <Run Text="{Binding Date}" FontSize="12" />
+                                                    <LineBreak/>
+                                                    <Run Text="{Binding Text}" />
+                                                </TextBlock>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                </Grid>
+                            </PivotItem>
+                        </Pivot>
+                    </StackPanel>
+                </Grid>
+            <!--</ScrollViewer>-->
 
             <CommandBar x:Name="DetailCommandBar" VerticalAlignment="Bottom">
                 <CommandBar.RenderTransform>
                     <CompositeTransform x:Name="DetailCommandBarTranslateY" TranslateY="48"/>
                 </CommandBar.RenderTransform>
                 <AppBarButton x:Name="LeftButton" Icon="Back" Label="Back" Click="Left" IsEnabled="False" />
-                <AppBarButton Label="Save" Click="Save" DataContext="{Binding DetailImageUrl}">
+                <AppBarButton x:Name="SaveButton" Label="Save" Icon="Save" Click="Save" DataContext="{Binding DetailImageUrl}" IsEnabled="False"/>
+                <AppBarButton x:Name="RightButton" Icon="Forward" Label="Next" Click="Right" IsEnabled="False"/>
+                <AppBarButton x:Name="CloseButton" Icon="Clear" Label="Close" Click="DetailClose"/>
+                <AppBarButton Label="Copy page link" Icon="Link" Click="CopyPageLink" DataContext="{Binding DetaillPageUrl}"/>
+                <AppBarButton Label="Copy image link" Icon="PreviewLink" Click="CopyImageLink" DataContext="{Binding DetailImageUrl}"/>
+                <AppBarButton x:Name="ShareButton" Label="Share" Click="Share" IsEnabled="False">
                     <AppBarButton.Icon>
-                        <SymbolIcon Width="20" Height="20" x:Name="DetailSaveIcon" Symbol="Save">
-                            <SymbolIcon.RenderTransform>
-                                <CompositeTransform x:Name="DetailSaveIconTransform" TranslateY="0" Rotation="0" CenterX="10" CenterY="10"/>
-                            </SymbolIcon.RenderTransform>
-                        </SymbolIcon>
+                        <FontIcon Glyph=""/>
                     </AppBarButton.Icon>
                 </AppBarButton>
-                <AppBarButton x:Name="RightButton" Icon="Forward" Label="Next" Click="Right" IsEnabled="False"/>
-                <AppBarButton Icon="Clear" Label="Close" Click="DetailClose"/>
-
-                <CommandBar.SecondaryCommands>
-                    <AppBarButton Label="Copy page link" Icon="Link" Click="CopyPageLink" DataContext="{Binding DetaillPageUrl}"/>
-                    <AppBarButton Label="Copy image link" Icon="PreviewLink" Click="CopyImageLink" DataContext="{Binding DetailImageUrl}"/>
-                    <AppBarButton Label="Share" Click="Share">
-                        <AppBarButton.Icon>
-                            <FontIcon Glyph=""/>
-                        </AppBarButton.Icon>
-                    </AppBarButton>
-                    <AppBarButton Label="Reload" Icon="Refresh" Click="Reload"/>
-                </CommandBar.SecondaryCommands>
+                <AppBarButton Label="Reload" Icon="Refresh" Click="Reload"/>
             </CommandBar>
         </Grid>
 

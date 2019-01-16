@@ -13,66 +13,27 @@ namespace BooruB.Helpers
 {
     public class Query
     {
-        /*
-        public virtual async Task<IBuffer> GetFileStatic(string url, Pages.MainPage mainPage)
-        {
-            try
-            {
-                Progress<Windows.Web.Http.HttpProgress> progressCallback = new Progress<Windows.Web.Http.HttpProgress>((Windows.Web.Http.HttpProgress obj) => {
-                    if (obj.TotalBytesToReceive == null)
-                    {
-                        return;
-                    }
-                    mainPage.SetProgressValue((int)(obj.BytesReceived / (obj.TotalBytesToReceive / 100)));
-                });
-
-                Windows.Web.Http.Filters.HttpBaseProtocolFilter RootFilter = new Windows.Web.Http.Filters.HttpBaseProtocolFilter();
-                RootFilter.CacheControl.ReadBehavior = Windows.Web.Http.Filters.HttpCacheReadBehavior.MostRecent;
-                RootFilter.CacheControl.WriteBehavior = Windows.Web.Http.Filters.HttpCacheWriteBehavior.NoCache;
-                Windows.Web.Http.HttpClient client = new Windows.Web.Http.HttpClient(RootFilter);
-                Windows.Web.Http.HttpResponseMessage response = await client.GetAsync(new Uri(url)).AsTask(mainPage.cts.Token, progressCallback);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    return await response.Content.ReadAsBufferAsync();
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("IsSuccessStatusCode:" + response.StatusCode);
-                    return null;
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                System.Diagnostics.Debug.WriteLine("OperationCanceledException:");
-                return null;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("ex:" + ex.Message);
-                return null;
-            }
-        }
-        */
+        public static HttpClient client = null;
 
         public virtual async Task<string> Get(string url)
         {
             string content = null;
             try
             {
-                using (HttpClient client = new HttpClient())
+                if (client == null) {
+                    client = new HttpClient();
+                }
+                using (HttpResponseMessage response = await client.GetAsync(new Uri(url)))
                 {
-                    using (HttpResponseMessage response = await client.GetAsync(new Uri(url)))
+                    if (response.IsSuccessStatusCode)
                     {
-                        if (response.IsSuccessStatusCode)
-                        {
-                            content = await response.Content.ReadAsStringAsync();
-                        }
+                        content = await response.Content.ReadAsStringAsync();
                     }
                 }
             }
             catch (Exception)
             {
+
             }
 
             return content;

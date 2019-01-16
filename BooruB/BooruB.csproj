@@ -95,7 +95,6 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Helpers\LoadingAnimation.cs" />
     <Compile Include="Helpers\Query.cs" />
     <Compile Include="Helpers\QueryProxy.cs" />
     <Compile Include="Models\Image.cs" />
@@ -104,6 +103,13 @@
     <Compile Include="Models\Settings.cs" />
     <Compile Include="Models\Site.cs" />
     <Compile Include="Models\Tag.cs" />
+    <Compile Include="Pages\MainPageDetailLoadingAndNotFound.cs" />
+    <Compile Include="Pages\MainPageDetailTags.cs" />
+    <Compile Include="Pages\MainPageDetailSwipe.cs" />
+    <Compile Include="Pages\MainPageDetailImageLoaded.cs" />
+    <Compile Include="Pages\MainPageDetailButtons.cs" />
+    <Compile Include="Pages\MainPageDetailLeftRight.cs" />
+    <Compile Include="Pages\MainPageDetailShowHide.cs" />
     <Compile Include="Pages\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -195,7 +201,9 @@
       <Name>Windows Mobile Extensions for the UWP</Name>
     </SDKReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Components\" />
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

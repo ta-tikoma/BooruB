@@ -7,6 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:BooruB.Models"
     xmlns:vmodels="using:BooruB.VModels"
+    SizeChanged="Page_SizeChanged"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -25,110 +26,118 @@
     </Page.Resources>
     
     <Grid>
-        <ScrollViewer HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled" VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
-            <StackPanel MaxWidth="1000">
-                <TextBlock Text="Settings:" FontSize="24" FontWeight="Bold" Margin="10,0,0,5"/>
-                <StackPanel>
-                    <TextBlock Text="Save images path" Margin="10,0,0,5"/>
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled"
+                      VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
+            <StackPanel >
+                <StackPanel MaxWidth="1000">
+                    <TextBlock Text="Settings:" FontSize="24" FontWeight="Bold" Margin="10,0,0,5"/>
+                    <StackPanel>
+                        <TextBlock Text="Save images path" Margin="10,0,0,5"/>
+                        <Grid Margin="10,0,10,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition Width="40"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="ImageSavePath" Text="{Binding Source={StaticResource Settings}, Path=image_save_path, Mode=TwoWay }"
+                                     Grid.Column="0" VerticalAlignment="Center" InputScope="Url" Margin="0,0,20,0"/>
+                            <Button Grid.Column="1" Click="SelectSavePath">
+                                <SymbolIcon Symbol="More"/>
+                            </Button>
+                        </Grid>
+                        <TextBlock Text="Image size in list" Margin="10,0,0,5"/>
+                        <Grid Margin="10,0,10,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition Width="60"/>
+                            </Grid.ColumnDefinitions>
+                            <Slider Grid.Column="0" Minimum="50" Maximum="300" Value="{Binding Source={StaticResource Settings}, Path=max_side_size, Mode=TwoWay }" ValueChanged="MaxSideSizeChaned"/>
+                            <TextBlock x:Name="CountImagesInRow" Text="{Binding Source={StaticResource Settings}, Path=images_in_row }" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="1"/>
+                        </Grid>
+                        <TextBlock Text="Max detail width" Margin="10,0,0,5"/>
+                        <Slider Margin="10,0,10,15" Minimum="200" Maximum="1200"
+                                Value="{Binding Source={StaticResource Settings}, Path=max_detail_width, Mode=TwoWay }" ValueChanged="MaxSideSizeChaned"/>
+                        <TextBlock Text="Hide nav buttons" Margin="10,0,0,5"/>
+                        <ToggleSwitch Margin="10,0,10,15" IsOn="{Binding Source={StaticResource Settings}, Path=hide_nav_button, Mode=TwoWay }"/>
+                        <Button Margin="10,10,10,15" Content="Clear all settings" Click="ClearAllSettings"/>
+                    </StackPanel>
+
+                    <StackPanel Visibility="Collapsed">
+                        <TextBlock Text="Proxy:" FontSize="24" FontWeight="Bold" Margin="10,0,0,5"/>
+                        <TextBlock Text="Host:Port" Margin="10,0,0,5"/>
+                
+                        <Grid Margin="10,0,10,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition Width="40"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox  Margin="0,0,20,0"
+                                 Text="{Binding Source={StaticResource Settings}, Path=proxy, Mode=TwoWay }" />
+                            <Button Grid.Column="1" Click="SelectSavePath">
+                                <SymbolIcon Symbol="Sync"/>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+
+                    <TextBlock Text="Sites:" FontSize="24" FontWeight="Bold" Margin="10,0,0,5"/>
                     <Grid Margin="10,0,10,15">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
                             <ColumnDefinition Width="40"/>
+                            <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
-                        <TextBox x:Name="ImageSavePath" Text="{Binding Source={StaticResource Settings}, Path=image_save_path, Mode=TwoWay }"
-                                 Grid.Column="0" VerticalAlignment="Center" InputScope="Url" Margin="0,0,20,0"/>
-                        <Button Grid.Column="1" Click="SelectSavePath">
-                            <SymbolIcon Symbol="More"/>
+                        <TextBox x:Name="InputUrl" Grid.Column="1" PlaceholderText="Like : https://booru.com"
+                                 Loaded="InputUrl_Loaded"
+                                 KeyUp="InputUrl_KeyUp"
+                                 VerticalAlignment="Center" InputScope="Url" Margin="20,0,0,0"/>
+                        <Button Grid.Column="0" Click="Add">
+                            <SymbolIcon Symbol="Add"/>
                         </Button>
                     </Grid>
-                    <TextBlock Text="Image size in list" Margin="10,0,0,5"/>
-                    <Grid Margin="10,0,10,15">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
-                            <ColumnDefinition Width="60"/>
-                        </Grid.ColumnDefinitions>
-                        <Slider Grid.Column="0" Minimum="50" Maximum="300" Value="{Binding Source={StaticResource Settings}, Path=max_side_size, Mode=TwoWay }" ValueChanged="MaxSideSizeChaned"/>
-                        <TextBlock x:Name="CountImagesInRow" Text="{Binding Source={StaticResource Settings}, Path=images_in_row }" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="1"/>
-                    </Grid>
-                    <TextBlock Text="Max detail width" Margin="10,0,0,5"/>
-                    <Slider Margin="10,0,10,15" Grid.Column="0" Minimum="200" Maximum="1200"
-                            Value="{Binding Source={StaticResource Settings}, Path=max_detail_width, Mode=TwoWay }" ValueChanged="MaxSideSizeChaned"/>
-                    <Button Margin="10,0,10,15" Content="Clear all settings" Click="ClearAllSettings"/>
-                </StackPanel>
-
-                <TextBlock Text="Proxy:" FontSize="24" FontWeight="Bold" Margin="10,0,0,5"/>
-                <TextBlock Text="Host:Port" Margin="10,0,0,5"/>
-                <Grid Margin="10,0,10,15">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="40"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox  Margin="0,0,20,0"
-                         Text="{Binding Source={StaticResource Settings}, Path=proxy, Mode=TwoWay }" />
-                    <Button Grid.Column="1" Click="SelectSavePath">
-                        <SymbolIcon Symbol="Sync"/>
-                    </Button>
-                </Grid>
-
-                <TextBlock Text="Sites:" FontSize="24" FontWeight="Bold" Margin="10,0,0,5"/>
-                <Grid Margin="10,0,10,15">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="40"/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox x:Name="InputUrl" Grid.Column="1" PlaceholderText="Like : https://booru.com"
-                             Loaded="InputUrl_Loaded"
-                             KeyUp="InputUrl_KeyUp"
-                             VerticalAlignment="Center" InputScope="Url" Margin="20,0,0,0"/>
-                    <Button Grid.Column="0" Click="Add">
-                        <SymbolIcon Symbol="Add"/>
-                    </Button>
-                </Grid>
-                <ListView ItemsSource="{x:Bind Sites}"
-                          ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                          ScrollViewer.VerticalScrollMode="Disabled"
-                          SelectionMode="None" Margin="0,0,0,5">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                    <ListView.HeaderTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Margin="7,0,0,0" Text="Remove"/>
-                                <TextBlock Margin="7,0,0,0" Text="Use proxy"/>
-                                <TextBlock Margin="17,0,0,0" Text="Name"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.HeaderTemplate>
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="vmodels:SiteSettings">
-                            <StackPanel>
+                    <ListView ItemsSource="{x:Bind Sites}"
+                              ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                              ScrollViewer.VerticalScrollMode="Disabled"
+                              SelectionMode="None" Margin="0,0,0,5">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.HeaderTemplate>
+                            <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
-                                    <Button Click="Remove" Margin="0,0,10,0" DataContext="{Binding}">
-                                        <SymbolIcon Symbol="Cancel"/>
-                                    </Button>
-                                    <CheckBox MinWidth="30" Margin="30,0,0,0" IsChecked="{Binding UseProxy, Mode=TwoWay}"/>
-                                    <TextBlock Margin="30,0,0,0" VerticalAlignment="Center" Text="{Binding Name}"/>
+                                    <TextBlock Margin="7,0,0,0" Text="Remove"/>
+                                    <TextBlock Visibility="Collapsed" Margin="7,0,0,0" Text="Use proxy"/>
+                                    <TextBlock Margin="17,0,0,0" Text="Name"/>
                                 </StackPanel>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                            </DataTemplate>
+                        </ListView.HeaderTemplate>
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="vmodels:SiteSettings">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Click="Remove" Margin="0,0,10,0" DataContext="{Binding}">
+                                            <SymbolIcon Symbol="Cancel"/>
+                                        </Button>
+                                        <CheckBox Visibility="Collapsed" MinWidth="30" Margin="30,0,0,0" IsChecked="{Binding UseProxy, Mode=TwoWay}"/>
+                                        <TextBlock Margin="20,0,0,0" VerticalAlignment="Center" Text="{Binding Name}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
 
-                <TextBlock Text="Credits:" FontSize="24" FontWeight="Bold" Margin="10,30,0,5"/>
-                <TextBlock Margin="10,0,0,5">
-                    <Run Text="Icon made by "/>
-                    <Hyperlink NavigateUri="http://www.freepik.com/">
-                        <Run Text="Freepik"/>
-                    </Hyperlink>
-                    <Run Text=" from "/>
-                    <Hyperlink NavigateUri="http://www.flaticon.com/">
-                        <Run Text="www.flaticon.com"/>
-                    </Hyperlink>
-                </TextBlock>
+                    <TextBlock Text="Credits:" FontSize="24" FontWeight="Bold" Margin="10,30,0,5"/>
+                    <TextBlock Margin="10,0,0,5">
+                        <Run Text="Icon made by "/>
+                        <Hyperlink NavigateUri="http://www.freepik.com/">
+                            <Run Text="Freepik"/>
+                        </Hyperlink>
+                        <Run Text=" from "/>
+                        <Hyperlink NavigateUri="http://www.flaticon.com/">
+                            <Run Text="www.flaticon.com"/>
+                        </Hyperlink>
+                    </TextBlock>
+                </StackPanel>
             </StackPanel>
         </ScrollViewer>
 

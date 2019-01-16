@@ -36,8 +36,13 @@ namespace BooruB.Models
 
             System.Diagnostics.Debug.WriteLine("link:" + next_page_link);
             string response = await App.Settings.Query.Get(next_page_link);
-            if (response != null)
+            if (response == null)
             {
+                Pages.MainPage.SetNothingFoundText("ENABLE INTERNET.");
+            }
+            else
+            {
+                Pages.MainPage.SetNothingFoundText("NOTHING FOUND.");
                 //Helpers.LoadingAnimation.SetPage(page);
 
                 // изображения
@@ -111,12 +116,12 @@ namespace BooruB.Models
             // показ плашки NOT FOUND
             if (Items.Count == 0)
             {
-                Helpers.LoadingAnimation.ShowNF();
+                Pages.MainPage.ShowNothingFound();
                 has_more_items = false;
             }
             else
             {
-                Helpers.LoadingAnimation.HideNF();
+                Pages.MainPage.HideNothingFound();
             }
 
             busy = false;
@@ -125,7 +130,7 @@ namespace BooruB.Models
 
         async Task<LoadMoreItemsResult> LoadMoreItemsAsync(CancellationToken c, uint count)
         {
-            Helpers.LoadingAnimation.Show();
+            Pages.MainPage.ShowListLoading();
             try
             {
                 count = await TLoad();
@@ -134,7 +139,7 @@ namespace BooruB.Models
             finally
             {
                 busy = false;
-                Helpers.LoadingAnimation.Hide();
+                Pages.MainPage.HideListLoading();
             }
         }
 
@@ -156,7 +161,7 @@ namespace BooruB.Models
             busy = false;
             Page.Save(this.page, next_page_link);
             this.Clear();
-            if (Helpers.LoadingAnimation.NothingFound())
+            if (Pages.MainPage.IsNothingFound())
             {
                await AsyncInfo.Run((c) => LoadMoreItemsAsync(c, 0));
             }

@@ -51,6 +51,13 @@ namespace BooruB.Models
             set { _max_side_size = value; RaiseProperty("max_side_size"); }
         }
 
+        public bool? _hide_nav_button { get; set; } = null;
+        public bool? hide_nav_button
+        {
+            get { return _hide_nav_button; }
+            set { _hide_nav_button = value; RaiseProperty("hide_nav_button"); }
+        }
+
         public int _side_size { get; set; } = 100;
         public int side_size
         {
@@ -125,8 +132,7 @@ namespace BooruB.Models
 
         private void FoundSite()
         {
-            System.Diagnostics.Debug.WriteLine("FoundSite");
-
+            //System.Diagnostics.Debug.WriteLine("FoundSite");
             if (site == null)
             {
                 ObservableCollection<Site> sites = Site.Load();

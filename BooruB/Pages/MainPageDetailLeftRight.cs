@@ -116,7 +116,7 @@ namespace BooruB.Pages
                 somethingWrong = false;
             } else
             {
-                SwipeTextPanel.Height = DetailStackPanel.ActualHeight;
+                SwipeTextPanel.Height = DetailScrollViewer.ActualHeight;
                 SwipeTextPanel.Visibility = Visibility.Visible;
             }
         }

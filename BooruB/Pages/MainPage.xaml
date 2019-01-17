@@ -169,6 +169,16 @@
                 To="0" Duration="0:0:0.7"/>
         </Storyboard>
 
+
+
+        <Storyboard x:Name="DetailScrollViewerTranslateXToZero">
+            <DoubleAnimation
+                Completed="DetailScrollViewerTranslateXToZero_Completed"
+                Storyboard.TargetName="DetailScrollViewerTranslateY"
+                Storyboard.TargetProperty="TranslateX"
+                To="0" Duration="0:0:0.3"/>
+        </Storyboard>
+
         <Storyboard x:Name="DetailScrollViewerTranslateYToZero">
             <DoubleAnimation
                 Completed="DetailScrollViewerTranslateYToZero_Completed"
@@ -457,13 +467,10 @@
                                 <SymbolIcon Symbol="ZoomIn" Foreground="Gray"/>
                             </Button>
                         </Grid>
-                        <Pivot x:Name="DetailPivot">
-                            <Pivot.HeaderTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding}" FontSize="12" />
-                                </DataTemplate>
-                            </Pivot.HeaderTemplate>
-                            <PivotItem Header="TAGS">
+
+                        <StackPanel>
+                        
+                   
                                 <GridView SelectionMode="None" ItemsSource="{Binding Tags}"
                                             Margin="0,10,0,4"
                                             ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
@@ -496,8 +503,7 @@
                                         </ItemsPanelTemplate>
                                     </GridView.ItemsPanel>
                                 </GridView>
-                            </PivotItem>
-                            <PivotItem Header="STATISTICS">
+                         
                                 <ListView ItemsSource="{Binding Statistics}"
                                             SelectionMode="None"
                                             ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled"
@@ -521,8 +527,7 @@
                                         </DataTemplate>
                                     </ListView.ItemTemplate>
                                 </ListView>
-                            </PivotItem>
-                            <PivotItem Header="{Binding CommentsTitle}">
+                            
                                 <Grid>
                                     <ListView ItemsSource="{Binding Comments}"
                                             SelectionMode="None"
@@ -530,7 +535,7 @@
                                             Margin="0,10,0,20">
                                         <ListView.HeaderTemplate>
                                             <DataTemplate>
-                                                <StackPanel>
+                                                <StackPanel Margin="0,0,0,20">
                                                     <TextBlock HorizontalAlignment="Center" Margin="0,20,0,30" Visibility="{Binding NoComments}" Text="NO COMMENTS"/>
                                                     <Grid>
                                                         <TextBox Name="tbMultiLine" PlaceholderText="Add your comment"
@@ -538,7 +543,7 @@
                                                           TextWrapping="Wrap"
                                                           AcceptsReturn="True"/>
                                                         <Button Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-                                                                BorderBrush="{ThemeResource TextBoxBackgroundThemeBrush}"
+                                                                BorderBrush="{ThemeResource TextBoxDisabledBorderThemeBrush}"
                                                                 BorderThickness="0,2,2,2"
                                                                 HorizontalAlignment="Right" VerticalAlignment="Stretch">
                                                             <SymbolIcon Symbol="Send"/>
@@ -569,8 +574,7 @@
                                         </ListView.ItemTemplate>
                                     </ListView>
                                 </Grid>
-                            </PivotItem>
-                        </Pivot>
+                        </StackPanel>
                     </StackPanel>
                 </Grid>
             <!--</ScrollViewer>-->

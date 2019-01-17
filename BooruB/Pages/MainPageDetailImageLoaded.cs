@@ -96,7 +96,7 @@ namespace BooruB.Pages
 
         private void ImageShow_Completed(object sender, object e)
         {
-            SwipeTextPanel.Height = DetailStackPanel.ActualHeight;
+            SwipeTextPanel.Height = DetailScrollViewer.ActualHeight;
             SaveButton.IsEnabled = true;
             ShareButton.IsEnabled = true;
         }

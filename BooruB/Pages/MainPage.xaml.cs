@@ -69,6 +69,10 @@ namespace BooruB.Pages
                 DetailCommandBar.PrimaryCommands.Remove(RightButton);
                 DetailCommandBar.PrimaryCommands.Remove(CloseButton);
             }
+
+            dispatcherTimer = new DispatcherTimer();
+            dispatcherTimer.Tick += DispatcherTimer_Tick;
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -212,6 +216,11 @@ namespace BooruB.Pages
             }
 
             //System.Diagnostics.Debug.WriteLine("Image_DataContextChanged:" + (sender.DataContext as Models.Image)?.Page);
+        }
+
+        private void TextBlock_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("TextBlock_Tapped:");
         }
 
         // пагинация

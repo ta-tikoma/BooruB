@@ -54,7 +54,7 @@ namespace BooruB.Pages
         private void ShowDetail_Completed(object sender, object e)
         {
             Detail.DataContext = ImageData;
-            SwipeTextPanel.Height = DetailStackPanel.ActualHeight;
+            SwipeTextPanel.Height = DetailScrollViewer.ActualHeight;
             SwipeTextPanel.Visibility = Visibility.Visible;
         }
 

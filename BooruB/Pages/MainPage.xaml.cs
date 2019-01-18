@@ -12,6 +12,7 @@ using Windows.Foundation.Collections;
 using Windows.Networking.BackgroundTransfer;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using Windows.UI.Composition;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -73,7 +74,26 @@ namespace BooruB.Pages
             dispatcherTimer = new DispatcherTimer();
             dispatcherTimer.Tick += DispatcherTimer_Tick;
             dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
+            AsyncInfo.Run((c) => Images.LoadMoreItemsAsync(c, 0));
         }
+
+        // подгрузка
+        ScrollViewer ImagesGridScrollViewer = null;
+        private void ImagesGrid_Loaded(object sender, RoutedEventArgs e)
+        {
+            GridView gridView = sender as GridView;
+            Border border = VisualTreeHelper.GetChild(gridView, 0) as Border;
+            ImagesGridScrollViewer = border.Child as ScrollViewer;
+            ImagesGridScrollViewer.ViewChanged += ScrollViewer_ViewChanged;
+        }
+
+        private void ScrollViewer_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("VerticalOffset:" + ImagesGridScrollViewer.VerticalOffset);
+            System.Diagnostics.Debug.WriteLine("ScrollableHeight:" + ImagesGridScrollViewer.ScrollableHeight);
+        }
+
+        // подгрузка
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
@@ -222,6 +242,7 @@ namespace BooruB.Pages
         {
             System.Diagnostics.Debug.WriteLine("TextBlock_Tapped:");
         }
+
 
         // пагинация
     }

@@ -15,97 +15,69 @@ namespace BooruB.Pages
 {
     public sealed partial class MainPage : Page
     {
-        // закрытие по свайпу
-        private void DetailScrollViewer_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
+        // колесико мыши
+        private void DetailScrollViewer_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
         {
-            /*
-            if (DetailScrollViewer.VerticalOffset == 0)
+            double deltaY = e.GetCurrentPoint(sender as Grid).Properties.MouseWheelDelta / 2;
+            //System.Diagnostics.Debug.WriteLine("DetailScrollViewer_PointerWheelChanged:" + deltaY);
+            double y = DetailStackPanelTranslateY.TranslateY + deltaY;
+            if ((y < 0) && (y > DetailScrollViewer.ActualHeight - DetailStackPanel.ActualHeight))
             {
-                CloseAnimation.Begin();
-            }
-            else
-            {
-                CloseAnimation.Stop();
-            }*/
-            //System.Diagnostics.Debug.WriteLine("HorizontalOffset:" + DetailScrollViewer.HorizontalOffset);
-            //var ttv = DetailStackPanel.TransformToVisual(Window.Current.Content);
-            //Point screenCoords = ttv.TransformPoint(new Point(0, 0));
-            //System.Diagnostics.Debug.WriteLine("DetailScrollViewer_ViewChanged:" + screenCoords.Y);
-            SwipeAnimation.Stop();
-        }
-
-        double vOffset = 0;
-        private void DetailScrollViewer_DirectManipulationStarted(object sender, object e)
-        {
-            /*
-            SwipeTextPanel.Height = DetailStackPanel.ActualHeight;
-            SwipeTextPanel.Visibility = Visibility.Visible;
-            if (DetailScrollViewer.VerticalOffset != vOffset)
-            {
-                SwipeAnimation.Stop();
+                DetailStackPanelTranslateY.TranslateY = y;
             } else
             {
-                SwipeAnimation.Begin();
+                if (y < 0)
+                {
+                    DetailStackPanelTranslateY.TranslateY = DetailScrollViewer.ActualHeight - DetailStackPanel.ActualHeight;
+                }
+                if (y > DetailScrollViewer.ActualHeight - DetailStackPanel.ActualHeight)
+                {
+                    DetailStackPanelTranslateY.TranslateY = 0;
+                }
             }
-            vOffset = DetailScrollViewer.VerticalOffset;
-            */
         }
 
-        private void DetailScrollViewer_DirectManipulationCompleted(object sender, object e)
-        {
-            //var ttv = DetailStackPanel.TransformToVisual(Window.Current.Content);
-            //Point screenCoords = ttv.TransformPoint(new Point(0, 0));
-            //System.Diagnostics.Debug.WriteLine("DetailScrollViewer_DirectManipulationCompleted:" + screenCoords.Y);
-            SwipeAnimation.Stop();
-        }
-
-        private void SwipeAnimation_Completed(object sender, object e)
-        {
-            /*var ttv = DetailStackPanel.TransformToVisual(SwipeTextPanel);
-            Point screenCoords = ttv.TransformPoint(new Point(0, 0));
-
-            if (screenCoords.Y > 30)
-            {
-                DetailClose(sender, new RoutedEventArgs());
-            } else if (screenCoords.X > 30)
-            {
-                Left(sender, new RoutedEventArgs());
-            } else if (screenCoords.X < -30)
-            {
-                Right(sender, new RoutedEventArgs());
-            }*/
-
-            //System.Diagnostics.Debug.WriteLine("CloseAnimation_Completed:Y:" + screenCoords.Y);
-            //System.Diagnostics.Debug.WriteLine("CloseAnimation_Completed:X:" + screenCoords.X);
-        }
-
-
-
+        // начало
         Point prevPoint = new Point();
         bool? isVertical = null;
-        bool isBeginLeftOrRight = false;
-
+        bool isBeginAction = false;
         private void DetailScrollViewer_ManipulationStarted(object sender, ManipulationStartedRoutedEventArgs e)
         {
+            if (e.PointerDeviceType == Windows.Devices.Input.PointerDeviceType.Mouse)
+            {
+                return;
+            }
+
             prevPoint = e.Position;
             DetailScrollViewerTranslateYToZero.Stop();
             dispatcherTimer.Stop();
-            isBeginLeftOrRight = false;
+            isBeginAction = false;
         }
 
+        // дельта
         double slow = 0.1;
-        double maxDelta = 0;
+        double lastDelta = 0;
+
+        const double hMax = 42;
+        const double hDelta = 2;
         private void DetailScrollViewer_ManipulationDelta(object sender, ManipulationDeltaRoutedEventArgs e)
         {
+            if (e.PointerDeviceType == Windows.Devices.Input.PointerDeviceType.Mouse)
+            {
+                return;
+            }
+
+            // определяем направление
             if (isVertical == null)
             {
                 isVertical = Math.Abs(e.Position.Y - prevPoint.Y) > Math.Abs(e.Position.X - prevPoint.X);
             }
 
+            // вертикальное
             if (isVertical == true)
             {
                 double deltaY = ((int) e.Position.Y - (int) prevPoint.Y) * slow;
-                maxDelta = deltaY;
+                lastDelta = deltaY;
 
                 if (deltaY == 0)
                 {
@@ -117,6 +89,7 @@ namespace BooruB.Pages
                 {
                     slow += 0.1;
                 }
+
                 if ((y < 0) && (y > DetailScrollViewer.ActualHeight - DetailStackPanel.ActualHeight) && (DetailScrollViewerTranslateY.TranslateY == 0))
                 {
                     DetailStackPanelTranslateY.TranslateY = y;
@@ -133,7 +106,7 @@ namespace BooruB.Pages
                             CloseLineTransform.ScaleX = (float)(42f / 42f) * y2;
                             if (CloseLineTransform.ScaleX == 42)
                             {
-                                dispatcherTimer.Stop();
+                                isBeginAction = true;
                                 DetailClose(null, new RoutedEventArgs());
                             }
                         }
@@ -141,6 +114,7 @@ namespace BooruB.Pages
                 }
             }
 
+            // горизонтальное
             if (isVertical == false)
             {
                 double deltaX = (int)e.Position.X - (int)prevPoint.X;
@@ -150,71 +124,83 @@ namespace BooruB.Pages
                 }
 
                 //System.Diagnostics.Debug.WriteLine("deltaX:" + deltaX);
-                double deltaX2 = deltaX > 0 ? 1 : -1;
+                double deltaX2 = deltaX > 0 ? hDelta : -hDelta;
                 double x2 = DetailScrollViewerTranslateY.TranslateX + deltaX2;
-                if (Math.Abs(x2) <= 42)
+                if (Math.Abs(x2) <= hMax)
                 {
                     DetailScrollViewerTranslateY.TranslateX = x2;
                     if (x2 > 0)
                     {
-                        PrevLineTransform.ScaleX = (float)(32f / 42f) * x2;
+                        PrevLineTransform.ScaleX = (float)(32f / hMax) * x2;
                         if (PrevLineTransform.ScaleX == 32)
                         {
-                            isBeginLeftOrRight = true;
+                            isBeginAction = true;
                             Left(sender, new RoutedEventArgs());
                         }
                     } else
                     {
-                        NextLineTransform.ScaleX = (float)(34f / 42f) * Math.Abs(x2);
+                        NextLineTransform.ScaleX = (float)(34f / hMax) * Math.Abs(x2);
                         if (NextLineTransform.ScaleX == 34)
                         {
-                            isBeginLeftOrRight = true;
+                            isBeginAction = true;
                             Right(sender, new RoutedEventArgs());
                         }
                     }
                 }
             }
+
             prevPoint = e.Position;
         }
 
+        // завершение
         DispatcherTimer dispatcherTimer;
         private void DetailScrollViewer_ManipulationCompleted(object sender, ManipulationCompletedRoutedEventArgs e)
         {
+            if (e.PointerDeviceType == Windows.Devices.Input.PointerDeviceType.Mouse)
+            {
+                return;
+            }
+
             if (DetailScrollViewerTranslateY.TranslateX != 0)
             {
-                if (!isBeginLeftOrRight)
+                if (!isBeginAction)
                 {
                     DetailScrollViewerTranslateXToZero.Begin();
                 }
             }
 
             isVertical = null;
-            //System.Diagnostics.Debug.WriteLine("maxDelta:" + maxDelta);
+            //System.Diagnostics.Debug.WriteLine("lastDelta:" + lastDelta);
 
             dispatcherTimer.Start();
-            //maxDelta = 0;
+            //lastDelta = 0;
         }
 
+        // завершаем таймер
         private void TimerEnd()
         {
             slow = 0.1;
             dispatcherTimer.Stop();
             if (DetailScrollViewerTranslateY.TranslateY != 0)
             {
-                DetailScrollViewerTranslateYToZero.Begin();
+                if (!isBeginAction)
+                {
+                    DetailScrollViewerTranslateYToZero.Begin();
+                }
             }
         }
 
+        // докатываемся
         private void DispatcherTimer_Tick(object sender, object e)
         {
-            maxDelta += maxDelta > 0 ? -0.6 : 0.6;
-            if ((maxDelta <= 1) && (-1 <= maxDelta))
+            lastDelta += lastDelta > 0 ? -0.3 : 0.3;
+            if ((lastDelta <= 1) && (-1 <= lastDelta))
             {
                 TimerEnd();
                 return;
             }
 
-            double y = DetailStackPanelTranslateY.TranslateY + maxDelta;
+            double y = DetailStackPanelTranslateY.TranslateY + lastDelta;
             if (slow < 1)
             {
                 slow += 0.1;

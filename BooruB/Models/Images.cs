@@ -128,8 +128,9 @@ namespace BooruB.Models
             return count;
         }
 
-        async Task<LoadMoreItemsResult> LoadMoreItemsAsync(CancellationToken c, uint count)
+        public async Task<LoadMoreItemsResult> LoadMoreItemsAsync(CancellationToken c, uint count)
         {
+            busy = true;
             Pages.MainPage.ShowListLoading();
             try
             {
@@ -161,9 +162,10 @@ namespace BooruB.Models
             busy = false;
             Page.Save(this.page, next_page_link);
             this.Clear();
-            if (Pages.MainPage.IsNothingFound())
+            //if (Pages.MainPage.IsNothingFound())
             {
-               await AsyncInfo.Run((c) => LoadMoreItemsAsync(c, 0));
+                await AsyncInfo.Run((c) => LoadMoreItemsAsync(c, 0));
+                //await AsyncInfo.Run((c) => LoadMoreItemsAsync(c, 0));
             }
         }
 
@@ -174,8 +176,7 @@ namespace BooruB.Models
                 throw new InvalidOperationException("Only one operation in flight at a time");
             }
 
-            busy = true;
-            return AsyncInfo.Run((c) => LoadMoreItemsAsync(c, count)); ;
+            return AsyncInfo.Run((c) => LoadMoreItemsAsync(c, count));
         }
 
         bool ISupportIncrementalLoading.HasMoreItems

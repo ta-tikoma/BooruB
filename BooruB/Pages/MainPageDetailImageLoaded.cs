@@ -35,7 +35,7 @@ namespace BooruB.Pages
         {
             StorageFile tempFile = null;
 
-            string type = GetType(url);
+            string type = Models.Image.GetType(url);
             //string name = GetName(url, type);
             string hash = Models.Page.GetHash2(url);
             //System.Diagnostics.Debug.WriteLine(hash + type);
@@ -51,6 +51,8 @@ namespace BooruB.Pages
                 SetProgressValue(0);
                 DetailImageProgressTextBlock.Opacity = 1.0;
                 tempFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(hash + type, CreationCollisionOption.OpenIfExists);
+                await Windows.Storage.FileIO.WriteBufferAsync(tempFile, await App.Settings.Query.GetBuffer(url));
+                /*
                 BackgroundDownloader downloader = new BackgroundDownloader();
                 DownloadOperation download = downloader.CreateDownload(new Uri(url), tempFile);
                 using (cts = new CancellationTokenSource())
@@ -59,6 +61,7 @@ namespace BooruB.Pages
                 }
                 downloader = null;
                 download = null;
+                */
                 //System.Diagnostics.Debug.WriteLine("from net");
             }
 
@@ -76,13 +79,18 @@ namespace BooruB.Pages
             try
             {
                 Models.Image image = sender.DataContext as Models.Image;
+                //System.Diagnostics.Debug.WriteLine("image:" + image);
+                //System.Diagnostics.Debug.WriteLine("image.DetailImageUrl:" + image.DetailImageUrl);
                 StorageFile tempFile = await GetFile(image.DetailImageUrl);
+                //System.Diagnostics.Debug.WriteLine("tempFile:" + tempFile);
                 using (IRandomAccessStream fileStream = await tempFile.OpenAsync(Windows.Storage.FileAccessMode.Read))
                 {
                     await bitmapImage.SetSourceAsync(fileStream);
                 }
 
+                //System.Diagnostics.Debug.WriteLine("bitmapImage:" + bitmapImage);
                 DetailImage.Source = bitmapImage;
+                //System.Diagnostics.Debug.WriteLine("bitmapImage.PixelWidth:" + bitmapImage.PixelWidth);
                 ShowImageHeight.To = DetailStackPanel.ActualWidth / bitmapImage.PixelWidth * bitmapImage.PixelHeight;
                 ShowImage.Begin();
             }

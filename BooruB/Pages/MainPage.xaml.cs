@@ -71,29 +71,10 @@ namespace BooruB.Pages
                 DetailCommandBar.PrimaryCommands.Remove(CloseButton);
             }
 
-            dispatcherTimer = new DispatcherTimer();
-            dispatcherTimer.Tick += DispatcherTimer_Tick;
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
-            AsyncInfo.Run((c) => Images.LoadMoreItemsAsync(c, 0));
+            InitTimer();
+            CurrentTab = TagsContainer;
+            //AsyncInfo.Run((c) => Images.LoadMoreItemsAsync(c, 0));
         }
-
-        // подгрузка
-        ScrollViewer ImagesGridScrollViewer = null;
-        private void ImagesGrid_Loaded(object sender, RoutedEventArgs e)
-        {
-            GridView gridView = sender as GridView;
-            Border border = VisualTreeHelper.GetChild(gridView, 0) as Border;
-            ImagesGridScrollViewer = border.Child as ScrollViewer;
-            ImagesGridScrollViewer.ViewChanged += ScrollViewer_ViewChanged;
-        }
-
-        private void ScrollViewer_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
-        {
-            System.Diagnostics.Debug.WriteLine("VerticalOffset:" + ImagesGridScrollViewer.VerticalOffset);
-            System.Diagnostics.Debug.WriteLine("ScrollableHeight:" + ImagesGridScrollViewer.ScrollableHeight);
-        }
-
-        // подгрузка
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
@@ -139,7 +120,8 @@ namespace BooruB.Pages
                 {
                     App.Settings.current_site = site.Url;
                     App.Settings.current_tag_code = null;
-                    Images.ClearSelf();
+                    //Images.ClearSelf();
+                    ImagesGrid.Reset();
                     HistoryOfTags.ChaneCurrentTag();
                 };
                 MainCommandBar.SecondaryCommands.Add(appBarButton);
@@ -173,49 +155,14 @@ namespace BooruB.Pages
         }
         // быстрое сообщение
 
-        // увеличение
-        private void ZoomOpen(object sender, RoutedEventArgs e)
-        {
-            DetailImageZoom.Source = DetailImage.Source;
-            DetailImageZoomGrid.Visibility = Visibility.Visible;
-        }
-
-        private void ZoomClose(object sender, RoutedEventArgs e)
-        {
-            DetailImageZoomGrid.Visibility = Visibility.Collapsed;
-            DetailImageZoom.Source = null;
-            DetailImageZoomScrollViewer.ChangeView(null, null, 1);
-        }
-
-        private void DetailImageZoomScrollViewer_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
-        {
-            Point p = e.GetPosition(DetailImageZoomScrollViewer);
-            TimeSpan period = TimeSpan.FromMilliseconds(10);
-
-            Windows.System.Threading.ThreadPoolTimer.CreateTimer(async (source) =>
-            {
-                await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-                {
-                    if (DetailImageZoomScrollViewer.ZoomFactor <= 1)
-                    {
-                        var k = DetailImageZoomScrollViewer.ChangeView(p.X + DetailImageZoomScrollViewer.HorizontalOffset * 2, p.Y + DetailImageZoomScrollViewer.VerticalOffset * 2, 2);
-                    }
-                    else
-                    {
-                        DetailImageZoomScrollViewer.ChangeView(DetailImageZoomScrollViewer.HorizontalOffset / 2 - p.X, DetailImageZoomScrollViewer.VerticalOffset / 2 - p.Y, 1);
-                    }
-                });
-            }
-            , period);
-        }
-        // увеличение
-
         // пагинация
         private void Continue(object sender, RoutedEventArgs e)
         {
-            Images.ClearSelf(Models.Page.GetCurrentPage());
+            //Images.ClearSelf(Models.Page.GetCurrentPage());
+            ImagesGrid.Reset(Models.Page.GetCurrentPage());
         }
 
+        /*
         int page = 1;
         string next_page_link = "";
         private void Image_DataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
@@ -237,13 +184,7 @@ namespace BooruB.Pages
 
             //System.Diagnostics.Debug.WriteLine("Image_DataContextChanged:" + (sender.DataContext as Models.Image)?.Page);
         }
-
-        private void TextBlock_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            System.Diagnostics.Debug.WriteLine("TextBlock_Tapped:");
-        }
-
-
+        */
         // пагинация
     }
 }

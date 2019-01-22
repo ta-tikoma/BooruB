@@ -13,9 +13,30 @@ namespace BooruB.Pages
     {
         // детальная: открытие скрытие панели
         Models.Image ImageData = null;
+        /*
         private async void Image_Tapped(object sender, TappedRoutedEventArgs e)
         {
             ImageData = await ((sender as Image).DataContext as Models.Image).DetailDataLoad();
+            if (ImageData != null)
+            {
+                PrepareToOpen();
+
+                SetLeftRightButtonsEnable();
+                Detail.Visibility = Visibility.Visible;
+                DetailImageProgressTextBlock.Opacity = 1;
+                SetProgressValue(0);
+                ShowDetail.Begin();
+            }
+            else
+            {
+                ShowMessage("Something wrong!");
+            }
+        }
+        */
+
+        private async void ImagesGrid_ImageTapped(object sender, Models.Image e)
+        {
+            ImageData = await e.DetailDataLoad();
             if (ImageData != null)
             {
                 PrepareToOpen();
@@ -55,6 +76,7 @@ namespace BooruB.Pages
         {
             Detail.DataContext = ImageData;
             SwipeTextPanel.Height = DetailScrollViewer.ActualHeight;
+            TabContainers.Height = CurrentTab.ActualHeight;
             SwipeTextPanel.Visibility = Visibility.Visible;
         }
 

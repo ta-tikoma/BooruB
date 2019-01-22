@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -37,6 +39,17 @@ namespace BooruB.Helpers
             }
 
             return content;
+        }
+
+        public virtual async Task<IBuffer> GetBuffer(string url)
+        {
+            if (client == null)
+            {
+                client = new HttpClient();
+            }
+
+            Byte[] bytes = await client.GetByteArrayAsync(url);
+            return bytes.AsBuffer();
         }
 
         /*

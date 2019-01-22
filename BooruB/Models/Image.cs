@@ -38,7 +38,6 @@ namespace BooruB.Models
         public List<Statistic> Statistics { get; set; } = null;
         public List<Comment> Comments { get; set; } = null;
         public string CommentsTitle { get; set; } = "COMMENTS (0)";
-        public Visibility NoComments { get; set; } = Visibility.Visible;
 
         public async Task<Image> DetailDataReLoad()
         {
@@ -194,7 +193,6 @@ namespace BooruB.Models
 
                 if (Comments.Count > 0)
                 {
-                    NoComments = Visibility.Collapsed;
                     CommentsTitle = "COMMENTS (" + Comments.Count + ")";
                 }
 
@@ -208,6 +206,18 @@ namespace BooruB.Models
 
             Pages.MainPage.HideListLoading();
             return this;
+        }
+
+        public static string GetType(string url)
+        {
+            foreach (string type in new[] { ".jpeg", ".jpg", ".gif", ".bmp" })
+            {
+                if (url.IndexOf(type) != -1)
+                {
+                    return type;
+                }
+            }
+            return ".png";
         }
     }
 }

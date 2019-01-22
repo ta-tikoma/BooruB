@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="d814d875-2498-4602-9d0b-4e3bb9a6cb51" Publisher="CN=Ni Shi" Version="1.0.0.0" />
-  <mp:PhoneIdentity PhoneProductId="d814d875-2498-4602-9d0b-4e3bb9a6cb51" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
+  <Identity Name="d814d875-2498-4602-9d0b-4e3bb9a6cb52" Publisher="CN=Ni Shi" Version="1.0.0.0" />
+  <mp:PhoneIdentity PhoneProductId="d814d875-2498-4602-9d0b-4e3bb9a6cb52" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>BooruB</DisplayName>
     <PublisherDisplayName>Ni Shi</PublisherDisplayName>

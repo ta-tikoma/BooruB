@@ -147,7 +147,23 @@
                 To="0" Duration="0:0:0.7"/>
         </Storyboard>
 
+        <Storyboard x:Name="TabAnimation" Completed="TabAnimation_Completed">
+            <DoubleAnimation
+                EnableDependentAnimation="True"
+                x:Name="TabAnimationSize"
+                Storyboard.TargetName="TabContainers"
+                Storyboard.TargetProperty="Height"
+                To="0.0" Duration="0:0:0.25"/>
+        </Storyboard>
 
+        <Storyboard x:Name="TabAnimationScroll" Completed="TabAnimationScroll_Completed">
+            <DoubleAnimation
+                EnableDependentAnimation="True"
+                x:Name="TabAnimationTranslateY"
+                Storyboard.TargetName="DetailStackPanelTranslateY"
+                Storyboard.TargetProperty="TranslateY"
+                To="0.0" Duration="0:0:0.25"/>
+        </Storyboard>
 
         <Storyboard x:Name="DetailScrollViewerTranslateXToZero">
             <DoubleAnimation
@@ -234,27 +250,34 @@
         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18"
                    x:Name="NothingFound" Text="NOTHING FOUND." Opacity="0.0"/>
 
+        <!--
         <GridView SelectionMode="None" Margin="0,0,0,46" x:Name="ImagesGrid" ItemsSource="{x:Bind Images}" ShowsScrollingPlaceholders="True">
             <GridView.ItemTemplate>
                 <DataTemplate x:DataType="models:Image">
                     <Image DataContext="{Binding}"
                            DataContextChanged="Image_DataContextChanged"
                            Tapped="Image_Tapped"
+                           Width="{Binding Source={StaticResource Settings}, Path=side_size}"
+                           Height="{Binding Source={StaticResource Settings}, Path=side_size}"
                            Stretch="UniformToFill">
                         <Image.Source>
                             <BitmapImage UriSource="{Binding ThumbnailUrl}"
-                                         DecodePixelWidth="{Binding Source={StaticResource Settings}, Path=side_size}"/>
+                                         DecodePixelHeight="{Binding Source={StaticResource Settings}, Path=side_size}"/>
                         </Image.Source>
                     </Image>
                 </DataTemplate>
             </GridView.ItemTemplate>
             <GridView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <!--<controls:StaggeredPanel DesiredColumnWidth="{Binding Source={StaticResource Settings}, Path=side_size}"/>-->
                     <ItemsWrapGrid MaximumRowsOrColumns="{Binding Source={StaticResource Settings}, Path=images_in_row}"  Orientation="Horizontal"/>
                 </ItemsPanelTemplate>
             </GridView.ItemsPanel>
         </GridView>
+        -->
+
+        <ScrollViewer x:Name="ImagesScrollViewer" Loaded="ImagesScrollViewer_Loaded" ViewChanged="ScrollViewer_ViewChanged">
+            <components:ImageInColumn x:Name="ImagesGrid" DataContext="{x:Bind Images}" ImageTapped="ImagesGrid_ImageTapped"/>
+        </ScrollViewer>
 
         <Grid x:Name="Search" Visibility="Collapsed">
             <Border
@@ -392,27 +415,23 @@
                     </Rectangle.RenderTransform>
                 </Rectangle>
             </Grid>
-
             
             <Grid x:Name="DetailScrollViewer"
-                                MaxWidth="{Binding Source={StaticResource Settings}, Path=max_detail_width, Mode=TwoWay }"
-                                Margin="10, 15, 10, 60"
-                                            VerticalAlignment="Top"
-                  PointerWheelChanged="DetailScrollViewer_PointerWheelChanged"
-                                            ManipulationMode="System,TranslateX,TranslateY"
-                                            ManipulationDelta="DetailScrollViewer_ManipulationDelta"
-                                            ManipulationCompleted="DetailScrollViewer_ManipulationCompleted"
-                                            ManipulationStarted="DetailScrollViewer_ManipulationStarted"
-                                            Background="#66000000"
-                                BorderThickness="3" BorderBrush="#66000000" 
-                                >
+                  MaxWidth="{Binding Source={StaticResource Settings}, Path=max_detail_width, Mode=TwoWay }"
+                  Margin="10, 15, 10, 60"
+                    VerticalAlignment="Top"
+                    PointerWheelChanged="DetailScrollViewer_PointerWheelChanged"
+                    ManipulationMode="System,TranslateX,TranslateY"
+                    ManipulationDelta="DetailScrollViewer_ManipulationDelta"
+                    ManipulationCompleted="DetailScrollViewer_ManipulationCompleted"
+                    ManipulationStarted="DetailScrollViewer_ManipulationStarted"
+                    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+                    BorderThickness="3" BorderBrush="#66000000" 
+                    >
                 <Grid.RenderTransform>
                     <CompositeTransform x:Name="DetailScrollViewerTranslateY" TranslateY="1280" TranslateX="0"/>
                 </Grid.RenderTransform>
                     
-
-                    
-
                 <StackPanel x:Name="DetailStackPanel"
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Top"
@@ -434,80 +453,98 @@
                         </Button>
                     </Grid>
 
-                    <StackPanel>
-                            <GridView SelectionMode="None" ItemsSource="{Binding Tags}"
-                                        Margin="0,10,0,4"
-                                        ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled">
-                                <GridView.ItemContainerStyle>
-                                    <Style TargetType="GridViewItem">
-                                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                        <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                        <Setter Property="Margin" Value="0,0,3,3"/>
-                                        <Setter Property="MinHeight" Value="10"/>
-                                        <Setter Property="MinWidth" Value="10"/>
-                                    </Style>
-                                </GridView.ItemContainerStyle>
-                                <GridView.ItemTemplate>
-                                    <DataTemplate x:DataType="models:Tag">
-                                        <StackPanel Orientation="Horizontal">
-                                            <Button Margin="0" Padding="0" Background="Transparent" DataContext="{Binding}" Click="TagClick" Holding="TagHolding">
-                                                <StackPanel Orientation="Horizontal" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}">
-                                                    <TextBlock Text="{Binding Name}" Margin="7,2,7,0"/>
-                                                    <StackPanel Padding="5,2,5,4" Background="{ThemeResource SystemControlBackgroundBaseMediumLowBrush}">
-                                                        <TextBlock Text="{Binding Count}"/>
+                    <StackPanel Margin="5,10,5,10">
+                        <StackPanel Orientation="Horizontal">
+                            <Button x:Name="TagsButton" Content="TAGS" Tag="TAGS" Background="Transparent" Click="Tab_Click"/>
+                            <Button x:Name="StatisticButton" Content="STATISTIC" Tag="STATISTIC" Background="Transparent" Click="Tab_Click" Foreground="{ThemeResource AppBarItemDisabledForegroundThemeBrush}"/>
+                            <Button x:Name="CommentsButton" Content="{Binding CommentsTitle}" Tag="COMMENTS" Background="Transparent" Click="Tab_Click" Foreground="{ThemeResource AppBarItemDisabledForegroundThemeBrush}" />
+                        </StackPanel>
+
+                        <Grid x:Name="TabContainers" Height="100">
+                            <Grid Height="1000">
+                                <ListView x:Name="TagsContainer" SelectionMode="None" ItemsSource="{Binding Tags}"
+                                          SizeChanged="CurrentTab_SizeChanged"
+                                          VerticalAlignment="Top"
+                                          Opacity="1"
+                                          Margin="0,0,0,0"
+                                          Padding="0,10,0,0"
+                                          ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                          ScrollViewer.VerticalScrollMode="Disabled">
+                                    <ListView.ItemContainerStyle>
+                                        <Style TargetType="ListViewItem">
+                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                            <Setter Property="Padding" Value="0,0,0,0"/>
+                                            <Setter Property="Margin" Value="0,0,3,3"/>
+                                            <Setter Property="MinHeight" Value="10"/>
+                                            <Setter Property="MinWidth" Value="10"/>
+                                        </Style>
+                                    </ListView.ItemContainerStyle>
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:Tag">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Margin="0" Padding="0" Background="Transparent" DataContext="{Binding}" Click="TagClick" Holding="TagHolding">
+                                                    <StackPanel Orientation="Horizontal" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}">
+                                                        <TextBlock Text="{Binding Name}" Margin="7,2,7,0"/>
+                                                        <StackPanel Padding="5,2,5,4" Background="{ThemeResource SystemControlBackgroundBaseMediumLowBrush}">
+                                                            <TextBlock Text="{Binding Count}"/>
+                                                        </StackPanel>
                                                     </StackPanel>
-                                                </StackPanel>
-                                            </Button>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </GridView.ItemTemplate>
-                                <GridView.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <controls:WrapPanel Orientation="Horizontal"/>
-                                    </ItemsPanelTemplate>
-                                </GridView.ItemsPanel>
-                            </GridView>
-                         
-                            <ListView ItemsSource="{Binding Statistics}"
+                                                </Button>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                    <ListView.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <controls:WrapPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ListView.ItemsPanel>
+                                </ListView>
+
+                                <ListView x:Name="StatisticContainer" ItemsSource="{Binding Statistics}"
+                                          SizeChanged="CurrentTab_SizeChanged"
+                                          VerticalAlignment="Top"
+                                          Opacity="0"
+                                          Padding="0,10,0,0"
+                                            SelectionMode="None"
+                                            ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled"
+                                            Margin="0,0,0,0">
+                                    <ListView.ItemContainerStyle>
+                                        <Style TargetType="ListViewItem">
+                                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                            <Setter Property="Margin" Value="0,0,1,1"/>
+                                            <Setter Property="MinHeight" Value="10"/>
+                                            <Setter Property="MinWidth" Value="10"/>
+                                        </Style>
+                                    </ListView.ItemContainerStyle>
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock>
+                                                <Run Text="{Binding Name}" FontWeight="Bold" />
+                                                <Run Text=":" />
+                                                <Run Text="{Binding Value}" />
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+
+                                <ListView x:Name="CommentsContainer" ItemsSource="{Binding Comments}"
+                                          SizeChanged="CurrentTab_SizeChanged"
+                                          VerticalAlignment="Top"
+                                          Opacity="0"
                                         SelectionMode="None"
                                         ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled"
-                                        Margin="0,10,0,20">
-                                <ListView.ItemContainerStyle>
-                                    <Style TargetType="ListViewItem">
-                                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                        <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                        <Setter Property="Margin" Value="0,0,1,1"/>
-                                        <Setter Property="MinHeight" Value="10"/>
-                                        <Setter Property="MinWidth" Value="10"/>
-                                    </Style>
-                                </ListView.ItemContainerStyle>
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock>
-                                            <Run Text="{Binding Name}" FontWeight="Bold" />
-                                            <Run Text=":" />
-                                            <Run Text="{Binding Value}" />
-                                        </TextBlock>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-                            
-                            <Grid>
-                                <ListView ItemsSource="{Binding Comments}"
-                                        SelectionMode="None"
-                                        ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled"
-                                        Margin="0,10,0,20">
+                                        Margin="10,0,10,0">
                                     <ListView.HeaderTemplate>
                                         <DataTemplate>
-                                            <StackPanel Margin="0,0,0,20">
-                                                <TextBlock HorizontalAlignment="Center" Margin="0,20,0,30" Visibility="{Binding NoComments}" Text="NO COMMENTS"/>
+                                            <StackPanel Margin="0,10,0,20">
                                                 <Grid>
-                                                    <TextBox Name="tbMultiLine" PlaceholderText="Add your comment"
-                                                            Padding="4,2,40,2"
-                                                        TextWrapping="Wrap"
-                                                        AcceptsReturn="True"/>
-                                                <Button Background="Transparent"
-                                                            BorderBrush="Transparent"
+                                                    <TextBox Name="tbMultiLine" IsEnabled="False" PlaceholderText="Add your comment"
+                                                             Padding="4,2,40,2"
+                                                             TextWrapping="Wrap"
+                                                             AcceptsReturn="True"/>
+                                                    <Button BorderBrush="Transparent"
                                                             BorderThickness="0,2,2,2"
                                                             HorizontalAlignment="Right" VerticalAlignment="Stretch">
                                                         <SymbolIcon Symbol="Send"/>
@@ -538,6 +575,7 @@
                                     </ListView.ItemTemplate>
                                 </ListView>
                             </Grid>
+                        </Grid>
                     </StackPanel>
                 </StackPanel>
             </Grid>

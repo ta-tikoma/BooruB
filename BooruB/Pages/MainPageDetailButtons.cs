@@ -15,17 +15,6 @@ namespace BooruB.Pages
     {
         // детальная : кнопки
         // сохранение
-        private string GetType(string url)
-        {
-            foreach (string type in new[] { ".jpeg", ".jpg", ".gif", ".bmp" })
-            {
-                if (url.IndexOf(type) != -1)
-                {
-                    return type;
-                }
-            }
-            return ".png";
-        }
 
         private string GetName(string url, string type)
         {
@@ -47,7 +36,7 @@ namespace BooruB.Pages
             try
             {
                 string url = (sender as AppBarButton).DataContext as string;
-                string type = GetType(url);
+                string type = Models.Image.GetType(url);
                 string name = GetName(url, type);
                 // определяем тип
 
@@ -154,7 +143,7 @@ namespace BooruB.Pages
 
             try
             {
-                string type = GetType(ImageData.DetailImageUrl);
+                string type = Models.Image.GetType(ImageData.DetailImageUrl);
                 string hash = Models.Page.GetHash(ImageData.DetailImageUrl);
                 StorageFile tempFile = await ApplicationData.Current.TemporaryFolder.GetFileAsync(hash + type);
                 await tempFile.DeleteAsync();

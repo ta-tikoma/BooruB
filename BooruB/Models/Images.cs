@@ -19,7 +19,7 @@ namespace BooruB.Models
         private int page = FIRST_PAGE;
         private int number = 1;
         private string next_page_link = "";
-        private bool has_more_items = true;
+        public bool has_more_items = true;
         private bool busy = false;
 
         public async Task<uint> TLoad()
@@ -34,7 +34,7 @@ namespace BooruB.Models
                 next_page_link = App.Settings.GetCurrentLink() + next_page_link;
             }
 
-            System.Diagnostics.Debug.WriteLine("link:" + next_page_link);
+            //System.Diagnostics.Debug.WriteLine("link:" + next_page_link);
             string response = await App.Settings.Query.Get(next_page_link);
             if (response == null)
             {
@@ -162,10 +162,9 @@ namespace BooruB.Models
             busy = false;
             Page.Save(this.page, next_page_link);
             this.Clear();
-            //if (Pages.MainPage.IsNothingFound())
+            if (Pages.MainPage.IsNothingFound())
             {
                 await AsyncInfo.Run((c) => LoadMoreItemsAsync(c, 0));
-                //await AsyncInfo.Run((c) => LoadMoreItemsAsync(c, 0));
             }
         }
 
@@ -175,7 +174,7 @@ namespace BooruB.Models
             {
                 throw new InvalidOperationException("Only one operation in flight at a time");
             }
-
+            busy = true;
             return AsyncInfo.Run((c) => LoadMoreItemsAsync(c, count));
         }
 

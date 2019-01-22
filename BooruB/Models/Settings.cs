@@ -96,7 +96,7 @@ namespace BooruB.Models
                 RaiseProperty("current_site");
                 foreach (Windows.UI.Xaml.Controls.AppBarButton appBarButton in Pages.MainPage.AppBarButtons)
                 {
-                    System.Diagnostics.Debug.WriteLine("appBarButton.Tag:" + appBarButton.Tag);
+                    //System.Diagnostics.Debug.WriteLine("appBarButton.Tag:" + appBarButton.Tag);
                     if (appBarButton.Tag.ToString() == current_site)
                     {
                         appBarButton.Icon = new Windows.UI.Xaml.Controls.SymbolIcon(Windows.UI.Xaml.Controls.Symbol.Accept);

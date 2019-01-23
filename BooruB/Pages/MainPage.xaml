@@ -156,6 +156,15 @@
                 To="0.0" Duration="0:0:0.25"/>
         </Storyboard>
 
+        <Storyboard x:Name="DetailStackPanelAnimationScroll" Completed="DetailStackPanelScroll_Completed">
+            <DoubleAnimation
+                EnableDependentAnimation="True"
+                x:Name="DetailStackPanelAnimationTranslateY"
+                Storyboard.TargetName="DetailStackPanelTranslateY"
+                Storyboard.TargetProperty="TranslateY"
+                To="0.0" Duration="0:0:0.25"/>
+        </Storyboard>
+        
         <Storyboard x:Name="TabAnimationScroll" Completed="TabAnimationScroll_Completed">
             <DoubleAnimation
                 EnableDependentAnimation="True"
@@ -250,33 +259,8 @@
         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18"
                    x:Name="NothingFound" Text="NOTHING FOUND." Opacity="0.0"/>
 
-        <!--
-        <GridView SelectionMode="None" Margin="0,0,0,46" x:Name="ImagesGrid" ItemsSource="{x:Bind Images}" ShowsScrollingPlaceholders="True">
-            <GridView.ItemTemplate>
-                <DataTemplate x:DataType="models:Image">
-                    <Image DataContext="{Binding}"
-                           DataContextChanged="Image_DataContextChanged"
-                           Tapped="Image_Tapped"
-                           Width="{Binding Source={StaticResource Settings}, Path=side_size}"
-                           Height="{Binding Source={StaticResource Settings}, Path=side_size}"
-                           Stretch="UniformToFill">
-                        <Image.Source>
-                            <BitmapImage UriSource="{Binding ThumbnailUrl}"
-                                         DecodePixelHeight="{Binding Source={StaticResource Settings}, Path=side_size}"/>
-                        </Image.Source>
-                    </Image>
-                </DataTemplate>
-            </GridView.ItemTemplate>
-            <GridView.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <ItemsWrapGrid MaximumRowsOrColumns="{Binding Source={StaticResource Settings}, Path=images_in_row}"  Orientation="Horizontal"/>
-                </ItemsPanelTemplate>
-            </GridView.ItemsPanel>
-        </GridView>
-        -->
-
         <ScrollViewer x:Name="ImagesScrollViewer" Loaded="ImagesScrollViewer_Loaded" ViewChanged="ScrollViewer_ViewChanged">
-            <components:ImageInColumn x:Name="ImagesGrid" DataContext="{x:Bind Images}" ImageTapped="ImagesGrid_ImageTapped"/>
+            <components:ImageInColumn x:Name="ImagesGrid" DataContext="{x:Bind Images}" Margin="0,0,0,100" ImageTapped="ImagesGrid_ImageTapped"/>
         </ScrollViewer>
 
         <Grid x:Name="Search" Visibility="Collapsed">
@@ -308,7 +292,7 @@
                 </ListView.ItemContainerStyle>
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Button Padding="0" BorderThickness="0" HorizontalAlignment="Right" DataContext="{Binding}" Click="TagClick" Holding="TagHolding">
+                        <Button Padding="0" BorderThickness="0" HorizontalAlignment="Right" DataContext="{Binding}" Click="TagClick" Holding="TagHolding" RightTapped="Button_RightTapped">
                             <StackPanel Padding="10,3,10,5" Orientation="Horizontal" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
                                 <SymbolIcon Visibility="{Binding IconVisibility}" Symbol="Accept"/>
                                 <TextBlock Text="{Binding Name}"/>
@@ -535,19 +519,49 @@
                                           Opacity="0"
                                         SelectionMode="None"
                                         ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled"
-                                        Margin="10,0,10,0">
+                                        Margin="0,0,0,0">
                                     <ListView.HeaderTemplate>
                                         <DataTemplate>
                                             <StackPanel Margin="0,10,0,20">
                                                 <Grid>
-                                                    <TextBox Name="tbMultiLine" IsEnabled="False" PlaceholderText="Add your comment"
+                                                    <TextBox PlaceholderText="Add your comment"
+                                                             Loaded="CommentInput_Loaded"
+                                                             x:Name="CommentInput"
                                                              Padding="4,2,40,2"
                                                              TextWrapping="Wrap"
                                                              AcceptsReturn="True"/>
-                                                    <Button BorderBrush="Transparent"
+                                                    <Button
+                                                            Background="{ThemeResource SystemControlBackgroundBaseMediumLowBrush}"
+                                                            BorderBrush="Transparent"
                                                             BorderThickness="0,2,2,2"
+                                                            Loaded="Button_Loaded"
+                                                            Click="CommentSend_Click"
                                                             HorizontalAlignment="Right" VerticalAlignment="Stretch">
-                                                        <SymbolIcon Symbol="Send"/>
+                                                        <Button.Resources>
+                                                            <Storyboard x:Name="SyncShow" x:Key="SyncShow">
+                                                                <DoubleAnimation
+                                                                    Storyboard.TargetName="Sync"
+                                                                    Storyboard.TargetProperty="Opacity"
+                                                                    From="0.0" To="1.0" Duration="0:0:1"/>
+                                                                <DoubleAnimation
+                                                                    Storyboard.TargetName="Send"
+                                                                    Storyboard.TargetProperty="Opacity"
+                                                                    From="1.0" To="0.0" Duration="0:0:1"/>
+                                                                <DoubleAnimation
+                                                                    Storyboard.TargetName="SyncRotateTransform"
+                                                                    Storyboard.TargetProperty="Angle"
+                                                                    RepeatBehavior="Forever"
+                                                                    From="0" To="360" Duration="0:0:1"/>
+                                                            </Storyboard>
+                                                        </Button.Resources>
+                                                        <Grid>
+                                                            <SymbolIcon x:Name="Sync" Symbol="Sync" Opacity="0">
+                                                                <SymbolIcon.RenderTransform>
+                                                                    <RotateTransform CenterX="10" CenterY="10" x:Name="SyncRotateTransform"/>
+                                                                </SymbolIcon.RenderTransform>
+                                                            </SymbolIcon>
+                                                            <SymbolIcon x:Name="Send" Symbol="Send"/>
+                                                        </Grid>
                                                     </Button>
                                                 </Grid>
                                             </StackPanel>
@@ -564,7 +578,7 @@
                                     </ListView.ItemContainerStyle>
                                     <ListView.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,20" IsTextSelectionEnabled="True">
+                                            <TextBlock TextWrapping="Wrap" Margin="10,0,10,20" IsTextSelectionEnabled="True">
                                                 <Run Text="{Binding Author}" FontWeight="Bold" />
                                                 <Run Text=":" />
                                                 <Run Text="{Binding Date}" FontSize="12" />

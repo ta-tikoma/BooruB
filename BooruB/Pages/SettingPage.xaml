@@ -58,7 +58,16 @@
                                 Value="{Binding Source={StaticResource Settings}, Path=max_detail_width, Mode=TwoWay }" ValueChanged="MaxSideSizeChaned"/>
                         <TextBlock Text="Hide nav buttons" Margin="10,0,0,5"/>
                         <ToggleSwitch Margin="10,0,10,15" IsOn="{Binding Source={StaticResource Settings}, Path=hide_nav_button, Mode=TwoWay }"/>
-                        <Button Margin="10,10,10,15" Content="Clear all settings" Click="ClearAllSettings"/>
+
+                        <Button Margin="10,20,10,15" Click="ClearCache">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Clear cache:"/>
+                                <ProgressRing x:Name="ClearCacheRing" Margin="5,0,5,0" IsActive="True" Loaded="ClearCacheRing_Loaded"/>
+                                <TextBlock x:Name="ClearCacheStatus" Text=""/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Margin="10,20,10,15" Content="Clear all settings" Click="ClearAllSettings"/>
                     </StackPanel>
 
                     <StackPanel Visibility="Collapsed">

@@ -9,6 +9,7 @@ using Windows.Storage.Streams;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Data;
+using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Media.Imaging;
 
 namespace BooruB.Components
@@ -56,13 +57,7 @@ namespace BooruB.Components
             catch (Exception)
             {
                 tempFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(hash + type, CreationCollisionOption.OpenIfExists);
-                await Windows.Storage.FileIO.WriteBufferAsync(tempFile, await App.Settings.Query.GetBuffer(url));
-
-                //BackgroundDownloader downloader = new BackgroundDownloader();
-                //DownloadOperation download = downloader.CreateDownload(new Uri(url), tempFile);
-                //await download.StartAsync().AsTask();
-                //downloader = null;
-                //download = null;
+                await App.Settings.Query.DownloadFile(url, tempFile);
             }
 
             if (tempFile == null)
@@ -91,14 +86,21 @@ namespace BooruB.Components
             return _bitmapImage;
         }
 
-        public async Task Show(Image ImageComponent)
+        public ItemData()
+        {
+            //storyboard = new Storyboard();
+            //fadeInThemeAnimation = new FadeInThemeAnimation();
+            //storyboard.Children.Add(fadeInThemeAnimation);
+        }
+
+        public async Task Show(KeyValuePair<Image, Storyboard> imageStoryboard)
         {
             if (isRender)
             {
                 return;
             }
             isRender = true;
-            this.ImageComponent = ImageComponent;
+            this.ImageComponent = imageStoryboard.Key;
 
             Models.Page.Save(ImageData.Page, ImageData.NextPageLink);
 
@@ -106,21 +108,21 @@ namespace BooruB.Components
             //System.Diagnostics.Debug.WriteLine("ImageData.ThumbnailUrl:" + ImageData.ThumbnailUrl);
             //System.Diagnostics.Debug.WriteLine("PixelWidth:" + _bitmapImage.PixelWidth);
             //System.Diagnostics.Debug.WriteLine("PixelHeight:" + _bitmapImage.PixelHeight);
-            if (_bitmapImage.PixelWidth == 0)
+            double _height = App.Settings.side_size;
+            if (_bitmapImage.PixelWidth != 0)
             {
-                Height = App.Settings.side_size;
-            } else
-            {
-                Height = ((double)App.Settings.side_size / (double)_bitmapImage.PixelWidth) * (double)_bitmapImage.PixelHeight;
+                _height = ((double)App.Settings.side_size / (double)_bitmapImage.PixelWidth) * (double)_bitmapImage.PixelHeight;
             }
             //System.Diagnostics.Debug.WriteLine("Height:" + Height);
+            Height = _height + 4;
 
-
-            ImageComponent.Height = Height;
+            ImageComponent.Height = _height;
             ImageComponent.Margin = new Thickness(0, MarginTop, 0, 0);
             ImageComponent.DataContext = ImageData;
             ImageComponent.Source = _bitmapImage;
-            ImageComponent.Visibility = Visibility.Visible;
+            imageStoryboard.Value.Stop();
+            imageStoryboard.Value.Begin();
+            //ImageComponent.Opacity = 1;
             Grid.SetColumn(ImageComponent, Column);
         }
 
@@ -133,7 +135,7 @@ namespace BooruB.Components
             isRender = false;
             //System.Diagnostics.Debug.WriteLine("Hide");
             ImageComponent.Tag = UNUSE;
-            ImageComponent.Visibility = Visibility.Collapsed;
+            ImageComponent.Opacity = 0;
             ImageComponent = null;
         }
     }
@@ -141,6 +143,8 @@ namespace BooruB.Components
     class ImageInColumn : Grid
     {
         List<ItemData> ItemsData = new List<ItemData>();
+        Dictionary<Image, Storyboard> dict = new Dictionary<Image, Storyboard>();
+
         public double VerticalOffset = 0;
 
         // конструктор
@@ -258,7 +262,7 @@ namespace BooruB.Components
 
         // отдает изображение новое или неиспользуемое
         public event EventHandler<Models.Image> ImageTapped;
-        private Image GetImage()
+        private KeyValuePair<Image, Storyboard> GetImage()
         {
             foreach (Image image in Children)
             {
@@ -266,7 +270,7 @@ namespace BooruB.Components
                 {
                     //System.Diagnostics.Debug.WriteLine("ItemData.UNUSE");
                     image.Tag = ItemData.USE;
-                    return image;
+                    return new KeyValuePair<Image, Storyboard>(image, dict[image]);
                 }
             }
             Image newImage = new Image()
@@ -275,11 +279,26 @@ namespace BooruB.Components
                 HorizontalAlignment = HorizontalAlignment.Left,
                 Width = App.Settings.side_size,
                 Stretch = Windows.UI.Xaml.Media.Stretch.UniformToFill,
-                Tag = ItemData.USE
+                Tag = ItemData.USE,
+                Opacity = 0
             };
             newImage.Tapped += NewImage_Tapped;
             Children.Add(newImage);
-            return newImage;
+
+            Storyboard storyboard = new Storyboard();
+            DoubleAnimation fadeInThemeAnimation = new DoubleAnimation()
+            {
+                From = 0.0,
+                To = 1.0,
+                Duration = new Duration(TimeSpan.FromMilliseconds(500))
+            };
+
+            storyboard.Children.Add(fadeInThemeAnimation);
+            Storyboard.SetTarget(fadeInThemeAnimation, newImage);
+            Storyboard.SetTargetProperty(fadeInThemeAnimation, "Opacity");
+            dict.Add(newImage, storyboard);
+
+            return new KeyValuePair<Image, Storyboard>(newImage, storyboard);
         }
 
         private void NewImage_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
@@ -300,6 +319,7 @@ namespace BooruB.Components
             Children.Clear();
             Models.Images Images = DataContext as Models.Images;
             Images.ClearSelf(page);
+            busy = false;
             ImagesLoad();
         }
 
@@ -315,13 +335,20 @@ namespace BooruB.Components
             busy = true;
             //System.Diagnostics.Debug.WriteLine("ImageLoad:begin");
 
+            Pages.MainPage.ShowListLoading();
             Models.Images Images = DataContext as Models.Images;
 
             while (CheckHeights())
             {
                 //System.Diagnostics.Debug.WriteLine("while");
-                LoadMoreItemsResult c = await Images.LoadMoreItemsAsync(cancellationToken, 0);
-                for (int i = Images.Count() - (int)c.Count; i < Images.Count(); i++)
+                uint c = await Images.Load();
+                if (c == 0)
+                {
+                    Pages.MainPage.HideListLoading();
+                    return;
+                }
+                System.Diagnostics.Debug.WriteLine("c.Count:" + c);
+                for (int i = Images.Count() - (int) c; i < Images.Count(); i++)
                 {
                     KeyValuePair<int, double> columnHeight = GetMinColumn();
 
@@ -335,6 +362,7 @@ namespace BooruB.Components
                     ItemsData.Add(itemData);
                 }
             }
+            Pages.MainPage.HideListLoading();
             //System.Diagnostics.Debug.WriteLine("ImageLoad:end");
             busy = false;
         }

@@ -169,5 +169,42 @@ namespace BooruB.Pages
             double width = Window.Current.Bounds.Width;
             App.Settings.images_in_row = (int)(width / App.Settings.max_side_size);
         }
+
+        // чистка кэша
+        private async void CalcCacheSize()
+        {
+            ulong size = 0;
+            foreach (IStorageItem item in await ApplicationData.Current.TemporaryFolder.GetItemsAsync())
+            {
+                if (item.IsOfType(StorageItemTypes.File))
+                {
+                    StorageFile storageFile = item as StorageFile;
+                    Windows.Storage.FileProperties.BasicProperties basicProperties = await storageFile.GetBasicPropertiesAsync();
+                    size += basicProperties.Size;
+                }
+            }
+            ClearCacheRing.IsActive = false;
+            ClearCacheStatus.Text = (size / 1024 / 1024) + " mb";
+        }
+
+        private void ClearCacheRing_Loaded(object sender, RoutedEventArgs e)
+        {
+            CalcCacheSize();
+        }
+
+        private async void ClearCache(object sender, RoutedEventArgs e)
+        {
+            ClearCacheRing.IsActive = true;
+            ClearCacheStatus.Text = "";
+
+            foreach (IStorageItem item in await ApplicationData.Current.TemporaryFolder.GetItemsAsync())
+            {
+                await item.DeleteAsync();
+            }
+
+            ClearCacheRing.IsActive = false;
+            ClearCacheStatus.Text = "0 mb";
+        }
+        // чистка кэша
     }
 }

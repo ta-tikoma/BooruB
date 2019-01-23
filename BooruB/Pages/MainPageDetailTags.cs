@@ -87,15 +87,8 @@ namespace BooruB.Pages
 
         // теги меню
         Models.Tag menuTag = null;
-        private void TagHolding(object sender, HoldingRoutedEventArgs e)
+        private void InitMenu()
         {
-            if (tagMenuIsOpen)
-            {
-                return;
-            }
-            Button button = sender as Button;
-            menuTag = button.DataContext as Models.Tag;
-
             if (HistoryOfTags.HasTag(menuTag))
             {
                 MenuFlyoutSeparator.Visibility = Visibility.Visible;
@@ -144,6 +137,32 @@ namespace BooruB.Pages
                 }
                 RemoveFromTags.Visibility = Visibility.Collapsed;
             }
+        }
+
+        private void TagHolding(object sender, HoldingRoutedEventArgs e)
+        {
+            if (tagMenuIsOpen)
+            {
+                return;
+            }
+            Button button = sender as Button;
+            menuTag = button.DataContext as Models.Tag;
+
+            InitMenu();
+
+            TagMenu.ShowAt(button, e.GetPosition(button));
+        }
+
+        private void Button_RightTapped(object sender, RightTappedRoutedEventArgs e)
+        {
+            if (tagMenuIsOpen)
+            {
+                return;
+            }
+            Button button = sender as Button;
+            menuTag = button.DataContext as Models.Tag;
+
+            InitMenu();
 
             TagMenu.ShowAt(button, e.GetPosition(button));
         }
@@ -202,7 +221,8 @@ namespace BooruB.Pages
                 App.Settings.current_site = menuTag.SiteUrl;
                 App.Settings.current_tag_code = menuTag.Code;
             }
-            Images.ClearSelf();
+
+            ImagesGrid.Reset();
             menuTag = null;
             HistoryOfTags.ChaneCurrentTag();
         }

@@ -30,6 +30,7 @@ namespace BooruB.Models
         public int Number { get; set; } = 1;
         public string ThumbnailUrl { get; set; } = null;
 
+        public string Id { get; set; } = "test";
         public string DetaillPageUrl { get; set; } = null;
 
         public bool DetailIsLoad { get; set; } = false;

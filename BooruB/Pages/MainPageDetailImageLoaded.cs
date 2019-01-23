@@ -12,6 +12,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media.Imaging;
+using Windows.Web.Http;
 
 namespace BooruB.Pages
 {
@@ -36,33 +37,19 @@ namespace BooruB.Pages
             StorageFile tempFile = null;
 
             string type = Models.Image.GetType(url);
-            //string name = GetName(url, type);
             string hash = Models.Page.GetHash2(url);
-            //System.Diagnostics.Debug.WriteLine(hash + type);
 
             try
             {
                 tempFile = await ApplicationData.Current.TemporaryFolder.GetFileAsync(hash + type);
                 DetailImageProgressTextBlock.Opacity = 0.0;
-                //System.Diagnostics.Debug.WriteLine("from temp");
             }
             catch (Exception)
             {
                 SetProgressValue(0);
                 DetailImageProgressTextBlock.Opacity = 1.0;
                 tempFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(hash + type, CreationCollisionOption.OpenIfExists);
-                await Windows.Storage.FileIO.WriteBufferAsync(tempFile, await App.Settings.Query.GetBuffer(url));
-                /*
-                BackgroundDownloader downloader = new BackgroundDownloader();
-                DownloadOperation download = downloader.CreateDownload(new Uri(url), tempFile);
-                using (cts = new CancellationTokenSource())
-                {
-                    await download.StartAsync().AsTask(cts.Token, new Progress<DownloadOperation>(DownloadProgress));
-                }
-                downloader = null;
-                download = null;
-                */
-                //System.Diagnostics.Debug.WriteLine("from net");
+                await App.Settings.Query.DownloadFile(url, tempFile, DownloadProgress);
             }
 
             return tempFile;
@@ -109,10 +96,17 @@ namespace BooruB.Pages
             ShareButton.IsEnabled = true;
         }
 
+        private void DownloadProgress(object sender, int procent)
+        {
+            SetProgressValue(procent);
+        }
+
+        /*
         private void DownloadProgress(DownloadOperation obj)
         {
             SetProgressValue((int)(obj.Progress.BytesReceived / (obj.Progress.TotalBytesToReceive / 100)));
         }
+        */
 
         private void DetailImageProgressLoaded(object sender, RoutedEventArgs e)
         {

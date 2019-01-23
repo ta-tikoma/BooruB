@@ -16,14 +16,6 @@ namespace BooruB.Pages
     public sealed partial class MainPage : Page
     {
         // устанавливаем таймер
-        DispatcherTimer dispatcherTimer;
-        private void InitTimer()
-        {
-            dispatcherTimer = new DispatcherTimer();
-            dispatcherTimer.Tick += DispatcherTimer_Tick;
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 5);
-        }
-
         const double diffHeight = 6;
 
         // колесико мыши
@@ -65,7 +57,8 @@ namespace BooruB.Pages
 
             prevPoint = e.Position;
             DetailScrollViewerTranslateYToZero.Stop();
-            dispatcherTimer.Stop();
+            DetailStackPanelAnimationScroll.Stop();
+            //dispatcherTimer.Stop();
             isBeginAction = false;
         }
 
@@ -217,18 +210,32 @@ namespace BooruB.Pages
             }
 
             isVertical = null;
-            //System.Diagnostics.Debug.WriteLine("lastDelta:" + lastDelta);
 
-            dispatcherTimer.Start();
-            //lastDelta = 0;
+            //System.Diagnostics.Debug.WriteLine("lastDelta:" + lastDelta);
+            if (Math.Abs(lastDelta) > 2)
+            {
+                if (lastDelta > 0)
+                {
+                    DetailStackPanelAnimationTranslateY.To = 0;
+                }
+                else
+                {
+                    DetailStackPanelAnimationTranslateY.To = DetailScrollViewer.ActualHeight - DetailStackPanel.ActualHeight - diffHeight;
+                }
+                DetailStackPanelAnimationScroll.Begin();
+                return;
+            }
+
+
+            //dispatcherTimer.Start();
+            TimerEnd();
         }
 
         // завершаем таймер
         private void TimerEnd()
         {
-            dispatcherTimer.Stop();
+            lastDelta = 0;
             slow = 0.1;
-            delay = 0;
             if (DetailScrollViewerTranslateY.TranslateY != 0)
             {
                 if (!isBeginAction)
@@ -238,39 +245,20 @@ namespace BooruB.Pages
             }
         }
 
-        // докатываемся
-        int delay = 0;
-        private void DispatcherTimer_Tick(object sender, object e)
+        // завершили докатывание и проставили значение
+        private void DetailStackPanelScroll_Completed(object sender, object e)
         {
-            if ((lastDelta <= 1) && (-1 <= lastDelta))
-            {
-                if (delay == 8)
-                {
-                    TimerEnd();
-                    return;
-                }
-                delay++;
-            }
-            else
-            {
-                lastDelta += lastDelta > 0 ? -0.1 : 0.1;
-            }
-
-            double y = DetailStackPanelTranslateY.TranslateY + lastDelta;
-            if ((y < 0) && (y > DetailScrollViewer.ActualHeight - DetailStackPanel.ActualHeight - diffHeight) && (DetailScrollViewerTranslateY.TranslateY == 0))
-            {
-                DetailStackPanelTranslateY.TranslateY = y;
-            } else
-            {
-                TimerEnd();
-            }
+            DetailStackPanelTranslateY.TranslateY = (double) DetailStackPanelAnimationTranslateY.To;
+            TimerEnd();
         }
 
+        // ровняем оттягивание по Y
         private void DetailScrollViewerTranslateYToZero_Completed(object sender, object e)
         {
             DetailScrollViewerTranslateY.TranslateY = 0;
         }
 
+        // ровняем оттягивание по X
         private void DetailScrollViewerTranslateXToZero_Completed(object sender, object e)
         {
             DetailScrollViewerTranslateY.TranslateX = 0;

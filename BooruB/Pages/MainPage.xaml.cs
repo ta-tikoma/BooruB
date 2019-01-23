@@ -71,7 +71,6 @@ namespace BooruB.Pages
                 DetailCommandBar.PrimaryCommands.Remove(CloseButton);
             }
 
-            InitTimer();
             CurrentTab = TagsContainer;
             //AsyncInfo.Run((c) => Images.LoadMoreItemsAsync(c, 0));
         }
@@ -158,33 +157,8 @@ namespace BooruB.Pages
         // пагинация
         private void Continue(object sender, RoutedEventArgs e)
         {
-            //Images.ClearSelf(Models.Page.GetCurrentPage());
             ImagesGrid.Reset(Models.Page.GetCurrentPage());
         }
-
-        /*
-        int page = 1;
-        string next_page_link = "";
-        private void Image_DataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
-        {
-            Models.Image image = sender.DataContext as Models.Image;
-            if (image == null)
-            {
-                page = 1;
-                next_page_link = "";
-                return;
-            }
-
-            if (image.Page > page)
-            {
-                Models.Page.Save(page, next_page_link);
-                page = image.Page;
-                next_page_link = image.NextPageLink;
-            }
-
-            //System.Diagnostics.Debug.WriteLine("Image_DataContextChanged:" + (sender.DataContext as Models.Image)?.Page);
-        }
-        */
         // пагинация
     }
 }

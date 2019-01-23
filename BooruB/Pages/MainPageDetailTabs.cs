@@ -52,6 +52,8 @@ namespace BooruB.Pages
             isTabAnimationRun = true;
             TabAnimationSize.To = to.ActualHeight + 10;
             CurrentTab.Opacity = 0;
+            CurrentTab.Margin = new Thickness(0, to.ActualHeight + 20, 0, 0);
+            to.Margin = new Thickness(0);
             to.Opacity = 1;
             CurrentTab = to;
             TabAnimation.Begin();

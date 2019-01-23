@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
+using Windows.Web.Http;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using Windows.Networking.BackgroundTransfer;
+using Windows.Storage;
 using Windows.Storage.Streams;
+using System.Threading;
 
 namespace BooruB.Helpers
 {
@@ -41,61 +44,66 @@ namespace BooruB.Helpers
             return content;
         }
 
-        public virtual async Task<IBuffer> GetBuffer(string url)
+        public virtual async Task Comment(string id, string text)
+        {
+            try
+            {
+                if (client == null)
+                {
+                    client = new HttpClient();
+                }
+
+                string url = App.Settings.current_site + "index.php?page=comment&id=" + id + "&s=save";
+                var content = new HttpMultipartFormDataContent();
+                content.Add(new HttpStringContent(text), "comment");
+                content.Add(new HttpStringContent("Post comment"), "submit");
+                content.Add(new HttpStringContent("1"), "conf");
+                System.Diagnostics.Debug.WriteLine("url:" + url);
+
+                using (HttpResponseMessage response = await client.PostAsync(new Uri(url), content))
+                {
+                    if (response.IsSuccessStatusCode)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Content:" + await response.Content.ReadAsStringAsync());
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
+        public virtual async Task DownloadFile(string url, StorageFile file, EventHandler<int> handler = null)
         {
             if (client == null)
             {
                 client = new HttpClient();
             }
 
-            Byte[] bytes = await client.GetByteArrayAsync(url);
-            return bytes.AsBuffer();
-        }
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, new Uri(url));
 
-        /*
-        public static async Task<string> GetRedirect(string proxy, string url, string postParams)
-        {
-            string redirectedUrl = null;
-            try
+            Progress<HttpProgress> progressCallback = new Progress<HttpProgress>((obj) =>
             {
-                var cookieContainer = new CookieContainer();
-                var handler = new HttpClientHandler()
+                if (handler != null)
                 {
-                    AllowAutoRedirect = false,
-                    CookieContainer = cookieContainer
-                };
-
-                using (HttpClient client = new HttpClient(handler))
-                {
-                    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Mobile Safari/537.36");
-                    client.DefaultRequestHeaders.Add("Referer", "http://webproxy.to/");
-                    await client.GetAsync(new Uri("http://webproxy.to/"));
-
-                    using (HttpResponseMessage response = await client.PostAsync(proxy, new FormUrlEncodedContent(new[]
+                    if (obj.TotalBytesToReceive == null)
                     {
-                        new KeyValuePair<string, string>("u", url),
-                        new KeyValuePair<string, string>("encodeURL", "on"),
-                        new KeyValuePair<string, string>("allowCookies", "on"),
-                    })))
-                    using (HttpContent content = response.Content)
+                        handler(null, 0);
+                    }
+                    else
                     {
-                        if (response.StatusCode == System.Net.HttpStatusCode.Found)
-                        {
-                            HttpResponseHeaders headers = response.Headers;
-                            if (headers != null && headers.Location != null)
-                            {
-                                redirectedUrl = headers.Location.AbsoluteUri;
-                            }
-                        }
+                       handler(null, (int)((100 / (double)obj.TotalBytesToReceive) * (double)obj.BytesReceived));
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-            }
+            });
+            var tokenSource = new CancellationTokenSource();
+            HttpResponseMessage response = await client.SendRequestAsync(request).AsTask(tokenSource.Token, progressCallback);
 
-            return redirectedUrl;
+            IInputStream inputStream = await response.Content.ReadAsInputStreamAsync();
+
+            IOutputStream outputStream = await file.OpenAsync(FileAccessMode.ReadWrite);
+            await RandomAccessStream.CopyAndCloseAsync(inputStream, outputStream);
         }
-        */
     }
 }

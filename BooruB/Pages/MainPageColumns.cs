@@ -32,5 +32,26 @@ namespace BooruB.Pages
             //System.Diagnostics.Debug.WriteLine("ImagesScrollViewer_Loaded:");
             ImagesGrid.ImagesLoad();
         }
+
+        private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (App.Settings.max_side_size == -1)
+            {
+                if ((Windows.System.Profile.AnalyticsInfo.VersionInfo.DeviceFamily == "Windows.Desktop"))
+                {
+                    App.Settings.max_side_size = 230;
+                }
+                else
+                {
+                    App.Settings.max_side_size = 100;
+                }
+            }
+
+            double width = Window.Current.Bounds.Width;
+            App.Settings.images_in_row = (int)(width / App.Settings.max_side_size);
+            App.Settings.side_size = (int)(width / App.Settings.images_in_row) - 4;
+
+            ImagesGrid.OnSizeChanged();
+        }
     }
 }

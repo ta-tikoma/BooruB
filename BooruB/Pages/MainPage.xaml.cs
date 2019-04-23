@@ -71,7 +71,7 @@ namespace BooruB.Pages
                 DetailCommandBar.PrimaryCommands.Remove(CloseButton);
             }
 
-            CurrentTab = TagsContainer;
+            CurrentTab = TagsGrid;
             //AsyncInfo.Run((c) => Images.LoadMoreItemsAsync(c, 0));
         }
 
@@ -128,25 +128,6 @@ namespace BooruB.Pages
             }
         }
 
-        private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            if (App.Settings.max_side_size == -1)
-            {
-                if ((Windows.System.Profile.AnalyticsInfo.VersionInfo.DeviceFamily == "Windows.Desktop"))
-                {
-                    App.Settings.max_side_size = 230;
-                }
-                else
-                {
-                    App.Settings.max_side_size = 100;
-                }
-            }
-
-            double width = Window.Current.Bounds.Width;
-            App.Settings.images_in_row = (int) (width / App.Settings.max_side_size);
-            App.Settings.side_size = (int) (width / App.Settings.images_in_row) - 4;
-        }
-
         // быстрое сообщение
         private void ShowMessage(string message) {
             Message.Text = message;
@@ -159,6 +140,7 @@ namespace BooruB.Pages
         {
             ImagesGrid.Reset(Models.Page.GetCurrentPage());
         }
+
         // пагинация
     }
 }

@@ -23,6 +23,13 @@ namespace BooruB.Pages
             SwipeTextPanel.Height = DetailScrollViewer.ActualHeight;
             DetailStackPanelTranslateY.TranslateY = nextYPosition;
             isTabAnimationRun = false;
+            if (CurrentTab == CommentsGrid)
+            {
+                CommentInput.IsEnabled = true;
+            } else
+            {
+                CommentInput.IsEnabled = false;
+            }
         }
 
         private void TabAnimation_Completed(object sender, object e)
@@ -39,10 +46,10 @@ namespace BooruB.Pages
             TabAnimationScroll.Begin();
         }
 
-        ListView CurrentTab = null;
+        Grid CurrentTab = null;
         bool isTabAnimationRun = false;
 
-        private void SetAnimation(ListView to)
+        private void SetAnimation(Grid to)
         {
             if (CurrentTab == to)
             {
@@ -74,19 +81,19 @@ namespace BooruB.Pages
             switch ((sender as Button)?.Tag.ToString())
             {
                 case "TAGS":
-                    SetAnimation(TagsContainer);
+                    SetAnimation(TagsGrid);
                     TagsButton.Foreground = (SolidColorBrush) Resources["ButtonForegroundThemeBrush"];
                     StatisticButton.Foreground = (SolidColorBrush) Resources["AppBarItemDisabledForegroundThemeBrush"];
                     CommentsButton.Foreground = (SolidColorBrush)Resources["AppBarItemDisabledForegroundThemeBrush"];
                     break;
                 case "STATISTIC":
-                    SetAnimation(StatisticContainer);
+                    SetAnimation(StatisticGrid);
                     TagsButton.Foreground = (SolidColorBrush)Resources["AppBarItemDisabledForegroundThemeBrush"];
                     StatisticButton.Foreground = (SolidColorBrush)Resources["ButtonForegroundThemeBrush"];
                     CommentsButton.Foreground = (SolidColorBrush)Resources["AppBarItemDisabledForegroundThemeBrush"];
                     break;
                 case "COMMENTS":
-                    SetAnimation(CommentsContainer);
+                    SetAnimation(CommentsGrid);
                     TagsButton.Foreground = (SolidColorBrush)Resources["AppBarItemDisabledForegroundThemeBrush"];
                     StatisticButton.Foreground = (SolidColorBrush)Resources["AppBarItemDisabledForegroundThemeBrush"];
                     CommentsButton.Foreground = (SolidColorBrush)Resources["ButtonForegroundThemeBrush"];

@@ -5,9 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
+using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media;
 
 namespace BooruB.Pages
 {
@@ -214,17 +216,32 @@ namespace BooruB.Pages
             if (menuTag.Code == "")
             {
                 App.Settings.current_tag_code = null;
+                SearchButton.Background = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
             }
             else
             {
                 HistoryOfTags.AddTag(menuTag);
                 App.Settings.current_site = menuTag.SiteUrl;
                 App.Settings.current_tag_code = menuTag.Code;
+                SearchButton.Background = (SolidColorBrush)Resources["SystemControlBackgroundAccentBrush"];
             }
 
             ImagesGrid.Reset();
             menuTag = null;
             HistoryOfTags.ChaneCurrentTag();
+        }
+
+
+        private void SearchButton_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (App.Settings.current_tag_code == "")
+            {
+                SearchButton.Background = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
+            }
+            else
+            {
+                SearchButton.Background = (SolidColorBrush)Resources["SystemControlBackgroundAccentBrush"];
+            }
         }
 
         private void AddToTags_Click(object sender, RoutedEventArgs e)

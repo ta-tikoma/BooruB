@@ -141,17 +141,6 @@ namespace BooruB.Pages
         {
             HideDetail.Completed -= HideDetailReload;
 
-            try
-            {
-                string type = Models.Image.GetType(ImageData.DetailImageUrl);
-                string hash = Models.Page.GetHash(ImageData.DetailImageUrl);
-                StorageFile tempFile = await ApplicationData.Current.TemporaryFolder.GetFileAsync(hash + type);
-                await tempFile.DeleteAsync();
-            }
-            catch (Exception)
-            {
-            }
-
             ImageData = await ImageData.DetailDataReLoad();
             if (ImageData != null)
             {

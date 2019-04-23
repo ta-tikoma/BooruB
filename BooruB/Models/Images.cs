@@ -22,6 +22,22 @@ namespace BooruB.Models
         private bool has_more_items = true;
         private bool busy = false;
 
+        private string GetIdFromUrl(string url)
+        {
+            string[] parts = url.Split('&');
+            foreach (string part in parts)
+            {
+                if (part.Length > 3)
+                {
+                    if (part.Substring(0, 3) == "id=")
+                    {
+                        return part.Substring(3);
+                    }
+                }
+            }
+            return "";
+        }
+
         public async Task<uint> Load()
         {
             if (busy)
@@ -47,80 +63,90 @@ namespace BooruB.Models
             }
 
             System.Diagnostics.Debug.WriteLine("next_page_link:" + next_page_link);
-            string response = await App.Settings.Query.Get(next_page_link);
-            if (response == null)
+
+            if (next_page_link == null)
             {
-                Pages.MainPage.SetNothingFoundText("ENABLE INTERNET.");
+                Pages.MainPage.SetNothingFoundText("ADD SITE IN SETTINGS.");
             }
             else
             {
-                Pages.MainPage.SetNothingFoundText("NOTHING FOUND.");
+                string response = await App.Settings.Query.Get(next_page_link);
 
-                // изображения
-                Regex regex = new Regex("<a[^>]*href=\"(?<detail>[^\"]+id=[^\"]+)\"[^>]*><img[^>]*src=\"(?<thumbnail>[^\"]+)\"[^>]*/></a>");
-                MatchCollection matches = regex.Matches(response);
-                foreach (Match match in matches)
+                if (response == null)
                 {
-                    string DetaillUrl = null;
-                    string ThumbnailUrl = null;
-                    GroupCollection collection = match.Groups;
-                    for (int i = 0; i < collection.Count; i++)
-                    {
-                        Group group = collection[i];
-                        if (regex.GroupNameFromNumber(i) == "detail")
-                        {
-                            DetaillUrl = group.Value.Trim().Replace("&amp;", "&");
-                        }
-                        if (regex.GroupNameFromNumber(i) == "thumbnail")
-                        {
-                            ThumbnailUrl = group.Value.Trim();
-                        }
-                    }
-
-                    Models.Image image = null;
-
-                    if ((DetaillUrl != null) && (ThumbnailUrl != null))
-                    {
-                        //System.Diagnostics.Debug.WriteLine("DetaillUrl:" + DetaillUrl);
-                        //System.Diagnostics.Debug.WriteLine("ThumbnailUrl:" + ThumbnailUrl);
-                        image = new Models.Image()
-                        {
-                            DetaillPageUrl = DetaillUrl,
-                            ThumbnailUrl = ThumbnailUrl,
-                            Number = number,
-                            Page = page,
-                            NextPageLink = next_page_link
-                        };
-                        number++;
-                    }
-
-                    if (image != null)
-                    {
-                        count++;
-                        this.Add(image);
-                    }
-                }
-
-                // следующая страница
-                string _next_page_link = "";
-                page++;
-                try
-                {
-                    Regex regexNP = new Regex("<a[^>]*href=\"([^\"]+)\"[^>]*>" + page + "</a>");
-                    Match matchNP = regexNP.Match(response);
-                    _next_page_link = matchNP.Groups[1].Value;
-                }
-                catch (Exception)
-                {
-                }
-
-                if (_next_page_link == "")
-                {
-                    has_more_items = false;
+                    Pages.MainPage.SetNothingFoundText("ENABLE INTERNET.");
                 }
                 else
                 {
-                    next_page_link = _next_page_link.Replace("&amp;", "&");
+                    Pages.MainPage.SetNothingFoundText("NOTHING FOUND.");
+
+                    // изображения
+                    Regex regex = new Regex("<a[^>]*href=\"(?<detail>[^\"]+id=[^\"]+)\"[^>]*><img[^>]*src=\"(?<thumbnail>[^\"]+)\"[^>]*/></a>");
+                    MatchCollection matches = regex.Matches(response);
+                    foreach (Match match in matches)
+                    {
+                        string DetaillUrl = null;
+                        string ThumbnailUrl = null;
+                        GroupCollection collection = match.Groups;
+                        for (int i = 0; i < collection.Count; i++)
+                        {
+                            Group group = collection[i];
+                            if (regex.GroupNameFromNumber(i) == "detail")
+                            {
+                                DetaillUrl = group.Value.Trim().Replace("&amp;", "&");
+                            }
+                            if (regex.GroupNameFromNumber(i) == "thumbnail")
+                            {
+                                ThumbnailUrl = group.Value.Trim();
+                            }
+                        }
+
+                        Models.Image image = null;
+
+                        if ((DetaillUrl != null) && (ThumbnailUrl != null))
+                        {
+                            //System.Diagnostics.Debug.WriteLine("DetaillUrl:" + DetaillUrl);
+                            //System.Diagnostics.Debug.WriteLine("ThumbnailUrl:" + ThumbnailUrl);
+                            image = new Models.Image()
+                            {
+                                Id = GetIdFromUrl(DetaillUrl),
+                                DetaillPageUrl = DetaillUrl,
+                                ThumbnailUrl = ThumbnailUrl,
+                                Number = number,
+                                Page = page,
+                                NextPageLink = next_page_link
+                            };
+                            number++;
+                        }
+
+                        if (image != null)
+                        {
+                            count++;
+                            this.Add(image);
+                        }
+                    }
+
+                    // следующая страница
+                    string _next_page_link = "";
+                    page++;
+                    try
+                    {
+                        Regex regexNP = new Regex("<a[^>]*href=\"([^\"]+)\"[^>]*>" + page + "</a>");
+                        Match matchNP = regexNP.Match(response);
+                        _next_page_link = matchNP.Groups[1].Value;
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                    if (_next_page_link == "")
+                    {
+                        has_more_items = false;
+                    }
+                    else
+                    {
+                        next_page_link = _next_page_link.Replace("&amp;", "&");
+                    }
                 }
             }
 

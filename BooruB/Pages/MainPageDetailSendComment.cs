@@ -32,11 +32,12 @@ namespace BooruB.Pages
             CommentSend.IsEnabled = false;
             CommentInput.IsEnabled = false;
             (CommentSend.Resources["SyncShow"] as Storyboard).Begin();
-            await App.Settings.Query.Comment(ImageData.Id, CommentInput.Text);
+            ImageData.LoadComments(await App.Settings.Query.Comment(ImageData.Id, CommentInput.Text));
             (CommentSend.Resources["SyncShow"] as Storyboard).Stop();
             CommentSend.IsEnabled = true;
             CommentInput.IsEnabled = true;
-            System.Diagnostics.Debug.WriteLine("CommentSend:");
+            CommentInput.Text = "";
+            //System.Diagnostics.Debug.WriteLine("CommentSend:");
         }
     }
 }

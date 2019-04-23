@@ -8,11 +8,14 @@
     xmlns:models="using:BooruB.Models"
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
     xmlns:components="using:BooruB.Components"
+    xmlns:helpers="using:BooruB.Helpers"
     mc:Ignorable="d"
     SizeChanged="Page_SizeChanged"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Page.Resources>
+        <helpers:CommentsCount x:Key="CommentsCounttValue" />
+
         <Storyboard x:Name="RotationLoadingIcon">
             <DoubleAnimation
                 Storyboard.TargetName="LoadingIconRotateTransform"
@@ -164,7 +167,7 @@
                 Storyboard.TargetProperty="TranslateY"
                 To="0.0" Duration="0:0:0.25"/>
         </Storyboard>
-        
+
         <Storyboard x:Name="TabAnimationScroll" Completed="TabAnimationScroll_Completed">
             <DoubleAnimation
                 EnableDependentAnimation="True"
@@ -255,7 +258,7 @@
                 <MenuFlyoutItem x:Name="RemoveFromHistory" Text="Remove from history" Click="RemoveFromHistory_Click" />
             </MenuFlyout>
         </FlyoutBase.AttachedFlyout>
-        
+
         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18"
                    x:Name="NothingFound" Text="NOTHING FOUND." Opacity="0.0"/>
 
@@ -313,7 +316,7 @@
                         <ColumnDefinition Width="40"/>
                         <ColumnDefinition Width="40"/>
                     </Grid.ColumnDefinitions>
-                    
+
                     <TextBox Grid.Column="0" x:Name="SearchInput" TabIndex="100000" PlaceholderText="search word like: hurma" InputScope="Search" KeyUp="SearchInput_KeyUp"/>
                     <Button Grid.Column="1" Click="SearchInputOpenTag">
                         <SymbolIcon Symbol="Accept"/>
@@ -324,7 +327,7 @@
                 </Grid>
             </StackPanel>
         </Grid>
-        
+
         <CommandBar x:Name="MainCommandBar" VerticalAlignment="Bottom" Loaded="CommandBar_Loaded">
             <CommandBar.Transitions>
                 <TransitionCollection>
@@ -341,7 +344,7 @@
                 </AppBarButton.Icon>
             </AppBarButton>
 
-            <AppBarButton Label="Search" Click="ShowSearchPanel">
+            <AppBarButton Label="Search" x:Name="SearchButton" Click="ShowSearchPanel" Background="Transparent" Loaded="SearchButton_Loaded">
                 <AppBarButton.Icon>
                     <SymbolIcon x:Name="FindIcon" Width="20" Height="20" Symbol="Find">
                         <SymbolIcon.RenderTransform>
@@ -356,7 +359,7 @@
                     <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE81C;"/>
                 </AppBarButton.Icon>
             </AppBarButton>
-            
+
             <AppBarButton Icon="Setting" Label="Setting" Click="Setting"/>
         </CommandBar>
 
@@ -364,7 +367,7 @@
             <Grid.RenderTransform>
                 <CompositeTransform x:Name="DetailTransform" TranslateX="0"/>
             </Grid.RenderTransform>
-            
+
             <Border
                 x:Name="DetailBorder"
                 HorizontalAlignment="Stretch"
@@ -399,7 +402,7 @@
                     </Rectangle.RenderTransform>
                 </Rectangle>
             </Grid>
-            
+
             <Grid x:Name="DetailScrollViewer"
                   MaxWidth="{Binding Source={StaticResource Settings}, Path=max_detail_width, Mode=TwoWay }"
                   Margin="10, 15, 10, 60"
@@ -415,7 +418,7 @@
                 <Grid.RenderTransform>
                     <CompositeTransform x:Name="DetailScrollViewerTranslateY" TranslateY="1280" TranslateX="0"/>
                 </Grid.RenderTransform>
-                    
+
                 <StackPanel x:Name="DetailStackPanel"
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Top"
@@ -441,153 +444,157 @@
                         <StackPanel Orientation="Horizontal">
                             <Button x:Name="TagsButton" Content="TAGS" Tag="TAGS" Background="Transparent" Click="Tab_Click"/>
                             <Button x:Name="StatisticButton" Content="STATISTIC" Tag="STATISTIC" Background="Transparent" Click="Tab_Click" Foreground="{ThemeResource AppBarItemDisabledForegroundThemeBrush}"/>
-                            <Button x:Name="CommentsButton" Content="{Binding CommentsTitle}" Tag="COMMENTS" Background="Transparent" Click="Tab_Click" Foreground="{ThemeResource AppBarItemDisabledForegroundThemeBrush}" />
+                            <Button x:Name="CommentsButton" Content="{Binding Comments, Converter={StaticResource CommentsCounttValue}}" Tag="COMMENTS" Background="Transparent" Click="Tab_Click" Foreground="{ThemeResource AppBarItemDisabledForegroundThemeBrush}" />
                         </StackPanel>
 
                         <Grid x:Name="TabContainers" Height="100">
                             <Grid Height="1000">
-                                <ListView x:Name="TagsContainer" SelectionMode="None" ItemsSource="{Binding Tags}"
-                                          SizeChanged="CurrentTab_SizeChanged"
-                                          VerticalAlignment="Top"
-                                          Opacity="1"
-                                          Margin="0,0,0,0"
-                                          Padding="0,10,0,0"
-                                          ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                          ScrollViewer.VerticalScrollMode="Disabled">
-                                    <ListView.ItemContainerStyle>
-                                        <Style TargetType="ListViewItem">
-                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                            <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                            <Setter Property="Padding" Value="0,0,0,0"/>
-                                            <Setter Property="Margin" Value="0,0,3,3"/>
-                                            <Setter Property="MinHeight" Value="10"/>
-                                            <Setter Property="MinWidth" Value="10"/>
-                                        </Style>
-                                    </ListView.ItemContainerStyle>
-                                    <ListView.ItemTemplate>
-                                        <DataTemplate x:DataType="models:Tag">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Button Margin="0" Padding="0" Background="Transparent" DataContext="{Binding}" Click="TagClick" Holding="TagHolding">
-                                                    <StackPanel Orientation="Horizontal" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}">
-                                                        <TextBlock Text="{Binding Name}" Margin="7,2,7,0"/>
-                                                        <StackPanel Padding="5,2,5,4" Background="{ThemeResource SystemControlBackgroundBaseMediumLowBrush}">
-                                                            <TextBlock Text="{Binding Count}"/>
+                                <Grid x:Name="TagsGrid" VerticalAlignment="Top" Opacity="1">
+                                    <ListView x:Name="TagsContainer" SelectionMode="None" ItemsSource="{Binding Tags}"
+                                              SizeChanged="CurrentTab_SizeChanged"
+                                              VerticalAlignment="Top"
+                                              Margin="0,0,0,0"
+                                              Padding="0,10,0,0"
+                                              ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                              ScrollViewer.VerticalScrollMode="Disabled">
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                                <Setter Property="Padding" Value="0,0,0,0"/>
+                                                <Setter Property="Margin" Value="0,0,3,3"/>
+                                                <Setter Property="MinHeight" Value="10"/>
+                                                <Setter Property="MinWidth" Value="10"/>
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate x:DataType="models:Tag">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button Margin="0" Padding="0" Background="Transparent" DataContext="{Binding}" Click="TagClick" Holding="TagHolding">
+                                                        <StackPanel Orientation="Horizontal" Background="{ThemeResource SystemControlBackgroundBaseLowBrush}">
+                                                            <TextBlock Text="{Binding Name}" Margin="7,2,7,0"/>
+                                                            <StackPanel Padding="5,2,5,4" Background="{ThemeResource SystemControlBackgroundBaseMediumLowBrush}">
+                                                                <TextBlock Text="{Binding Count}"/>
+                                                            </StackPanel>
                                                         </StackPanel>
-                                                    </StackPanel>
-                                                </Button>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ListView.ItemTemplate>
-                                    <ListView.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <controls:WrapPanel Orientation="Horizontal"/>
-                                        </ItemsPanelTemplate>
-                                    </ListView.ItemsPanel>
-                                </ListView>
+                                                    </Button>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                        <ListView.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <controls:WrapPanel Orientation="Horizontal"/>
+                                            </ItemsPanelTemplate>
+                                        </ListView.ItemsPanel>
+                                    </ListView>
+                                </Grid>
 
-                                <ListView x:Name="StatisticContainer" ItemsSource="{Binding Statistics}"
+                                <Grid x:Name="StatisticGrid" VerticalAlignment="Top" Opacity="0">
+                                    <ListView x:Name="StatisticContainer" ItemsSource="{Binding Statistics}"
                                           SizeChanged="CurrentTab_SizeChanged"
                                           VerticalAlignment="Top"
-                                          Opacity="0"
                                           Padding="0,10,0,0"
                                             SelectionMode="None"
                                             ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled"
                                             Margin="0,0,0,0">
-                                    <ListView.ItemContainerStyle>
-                                        <Style TargetType="ListViewItem">
-                                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                            <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                            <Setter Property="Margin" Value="0,0,1,1"/>
-                                            <Setter Property="MinHeight" Value="10"/>
-                                            <Setter Property="MinWidth" Value="10"/>
-                                        </Style>
-                                    </ListView.ItemContainerStyle>
-                                    <ListView.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock>
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                                <Setter Property="Margin" Value="0,0,1,1"/>
+                                                <Setter Property="MinHeight" Value="10"/>
+                                                <Setter Property="MinWidth" Value="10"/>
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock>
                                                 <Run Text="{Binding Name}" FontWeight="Bold" />
                                                 <Run Text=":" />
                                                 <Run Text="{Binding Value}" />
-                                            </TextBlock>
-                                        </DataTemplate>
-                                    </ListView.ItemTemplate>
-                                </ListView>
+                                                </TextBlock>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                </Grid>
 
-                                <ListView x:Name="CommentsContainer" ItemsSource="{Binding Comments}"
+                                <Grid x:Name="CommentsGrid" VerticalAlignment="Top" Opacity="0">
+                                    <ListView x:Name="CommentsContainer" ItemsSource="{Binding Comments}"
                                           SizeChanged="CurrentTab_SizeChanged"
                                           VerticalAlignment="Top"
-                                          Opacity="0"
                                         SelectionMode="None"
                                         ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollMode="Disabled"
                                         Margin="0,0,0,0">
-                                    <ListView.HeaderTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Margin="0,10,0,20">
-                                                <Grid>
-                                                    <TextBox PlaceholderText="Add your comment"
+                                        <ListView.HeaderTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Margin="15,10,15,15">
+                                                    <Grid>
+                                                        <TextBox PlaceholderText="Add your comment"
                                                              Loaded="CommentInput_Loaded"
                                                              x:Name="CommentInput"
+                                                             IsEnabled="False"
                                                              Padding="4,2,40,2"
                                                              TextWrapping="Wrap"
                                                              AcceptsReturn="True"/>
-                                                    <Button
+                                                        <Button
                                                             Background="{ThemeResource SystemControlBackgroundBaseMediumLowBrush}"
                                                             BorderBrush="Transparent"
                                                             BorderThickness="0,2,2,2"
                                                             Loaded="Button_Loaded"
                                                             Click="CommentSend_Click"
                                                             HorizontalAlignment="Right" VerticalAlignment="Stretch">
-                                                        <Button.Resources>
-                                                            <Storyboard x:Name="SyncShow" x:Key="SyncShow">
-                                                                <DoubleAnimation
+                                                            <Button.Resources>
+                                                                <Storyboard x:Name="SyncShow" x:Key="SyncShow">
+                                                                    <DoubleAnimation
                                                                     Storyboard.TargetName="Sync"
                                                                     Storyboard.TargetProperty="Opacity"
                                                                     From="0.0" To="1.0" Duration="0:0:1"/>
-                                                                <DoubleAnimation
+                                                                    <DoubleAnimation
                                                                     Storyboard.TargetName="Send"
                                                                     Storyboard.TargetProperty="Opacity"
                                                                     From="1.0" To="0.0" Duration="0:0:1"/>
-                                                                <DoubleAnimation
+                                                                    <DoubleAnimation
                                                                     Storyboard.TargetName="SyncRotateTransform"
                                                                     Storyboard.TargetProperty="Angle"
                                                                     RepeatBehavior="Forever"
                                                                     From="0" To="360" Duration="0:0:1"/>
-                                                            </Storyboard>
-                                                        </Button.Resources>
-                                                        <Grid>
-                                                            <SymbolIcon x:Name="Sync" Symbol="Sync" Opacity="0">
-                                                                <SymbolIcon.RenderTransform>
-                                                                    <RotateTransform CenterX="10" CenterY="10" x:Name="SyncRotateTransform"/>
-                                                                </SymbolIcon.RenderTransform>
-                                                            </SymbolIcon>
-                                                            <SymbolIcon x:Name="Send" Symbol="Send"/>
-                                                        </Grid>
-                                                    </Button>
-                                                </Grid>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ListView.HeaderTemplate>
-                                    <ListView.ItemContainerStyle>
-                                        <Style TargetType="ListViewItem">
-                                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                            <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                            <Setter Property="Margin" Value="0,0,1,1"/>
-                                            <Setter Property="MinHeight" Value="10"/>
-                                            <Setter Property="MinWidth" Value="10"/>
-                                        </Style>
-                                    </ListView.ItemContainerStyle>
-                                    <ListView.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock TextWrapping="Wrap" Margin="10,0,10,20" IsTextSelectionEnabled="True">
+                                                                </Storyboard>
+                                                            </Button.Resources>
+                                                            <Grid>
+                                                                <SymbolIcon x:Name="Sync" Symbol="Sync" Opacity="0">
+                                                                    <SymbolIcon.RenderTransform>
+                                                                        <RotateTransform CenterX="10" CenterY="10" x:Name="SyncRotateTransform"/>
+                                                                    </SymbolIcon.RenderTransform>
+                                                                </SymbolIcon>
+                                                                <SymbolIcon x:Name="Send" Symbol="Send"/>
+                                                            </Grid>
+                                                        </Button>
+                                                    </Grid>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListView.HeaderTemplate>
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                                <Setter Property="Margin" Value="0,0,1,1"/>
+                                                <Setter Property="MinHeight" Value="10"/>
+                                                <Setter Property="MinWidth" Value="10"/>
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock TextWrapping="Wrap" Margin="10,0,10,20" IsTextSelectionEnabled="True">
                                                 <Run Text="{Binding Author}" FontWeight="Bold" />
                                                 <Run Text=":" />
                                                 <Run Text="{Binding Date}" FontSize="12" />
                                                 <LineBreak/>
                                                 <Run Text="{Binding Text}" />
-                                            </TextBlock>
-                                        </DataTemplate>
-                                    </ListView.ItemTemplate>
-                                </ListView>
+                                                </TextBlock>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                </Grid>
                             </Grid>
                         </Grid>
                     </StackPanel>

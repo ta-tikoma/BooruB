@@ -44,8 +44,10 @@ namespace BooruB.Helpers
             return content;
         }
 
-        public virtual async Task Comment(string id, string text)
+        public virtual async Task<string> Comment(string id, string text)
         {
+            string content = null;
+
             try
             {
                 if (client == null)
@@ -54,17 +56,16 @@ namespace BooruB.Helpers
                 }
 
                 string url = App.Settings.current_site + "index.php?page=comment&id=" + id + "&s=save";
-                var content = new HttpMultipartFormDataContent();
-                content.Add(new HttpStringContent(text), "comment");
-                content.Add(new HttpStringContent("Post comment"), "submit");
-                content.Add(new HttpStringContent("1"), "conf");
-                System.Diagnostics.Debug.WriteLine("url:" + url);
+                HttpMultipartFormDataContent httpContents = new HttpMultipartFormDataContent();
+                httpContents.Add(new HttpStringContent(text), "comment");
+                httpContents.Add(new HttpStringContent("Post comment"), "submit");
+                httpContents.Add(new HttpStringContent("1"), "conf");
 
-                using (HttpResponseMessage response = await client.PostAsync(new Uri(url), content))
+                using (HttpResponseMessage response = await client.PostAsync(new Uri(url), httpContents))
                 {
                     if (response.IsSuccessStatusCode)
                     {
-                        System.Diagnostics.Debug.WriteLine("Content:" + await response.Content.ReadAsStringAsync());
+                        content = await response.Content.ReadAsStringAsync();
                     }
                 }
             }
@@ -72,6 +73,7 @@ namespace BooruB.Helpers
             {
 
             }
+            return content;
         }
 
         public virtual async Task DownloadFile(string url, StorageFile file, EventHandler<int> handler = null)

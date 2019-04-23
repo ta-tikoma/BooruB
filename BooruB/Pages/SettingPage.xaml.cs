@@ -117,6 +117,7 @@ namespace BooruB.Pages
         {
             var picker = new FolderPicker();
             picker.ViewMode = PickerViewMode.Thumbnail;
+            picker.FileTypeFilter.Add("*");
             picker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
 
             StorageFolder folder = await picker.PickSingleFolderAsync();
@@ -160,7 +161,19 @@ namespace BooruB.Pages
             DataPackageView dataPackageView = Clipboard.GetContent();
             if (dataPackageView.Contains(StandardDataFormats.Text))
             {
-                (sender as TextBox).Text = await dataPackageView.GetTextAsync();
+                Uri uri = null;
+                try
+                {
+                    uri = new Uri(await dataPackageView.GetTextAsync());
+                }
+                catch (Exception)
+                {
+                }
+
+                if (uri != null)
+                {
+                    (sender as TextBox).Text = uri.ToString();
+                }
             }
         }
 
@@ -171,40 +184,105 @@ namespace BooruB.Pages
         }
 
         // чистка кэша
-        private async void CalcCacheSize()
+        bool isCancel = false;
+
+        private async void CacheCalc_Click(object sender, RoutedEventArgs e)
         {
-            ulong size = 0;
-            foreach (IStorageItem item in await ApplicationData.Current.TemporaryFolder.GetItemsAsync())
+            // кнопки
+            CacheCalc.IsEnabled = false;
+            CacheClear.IsEnabled = false;
+            CacheCancel.Visibility = Visibility.Visible;
+            ClearCacheLabel.Text = "Calculate size...";
+
+            // действие
+            long size = 0;
+            string[] filePaths = Directory.GetFiles(ApplicationData.Current.TemporaryFolder.Path);
+            foreach (string filePath in filePaths)
             {
+                size += (new System.IO.FileInfo(filePath)).Length;
+            }
+
+            // действие
+            /*ulong size = 0;
+            IReadOnlyList<IStorageItem> items = await ApplicationData.Current.TemporaryFolder.GetItemsAsync();
+            int i = 0;
+            foreach (IStorageItem item in items)
+            {
+                // прерывание
+                if (isCancel)
+                {
+                    isCancel = false;
+                    ClearCacheLabel.Text = "Calculate size: canceled";
+                    CacheCalc.IsEnabled = true;
+                    CacheClear.IsEnabled = true;
+                    CacheCancel.Visibility = Visibility.Collapsed;
+                    return;
+                }
+
                 if (item.IsOfType(StorageItemTypes.File))
                 {
                     StorageFile storageFile = item as StorageFile;
                     Windows.Storage.FileProperties.BasicProperties basicProperties = await storageFile.GetBasicPropertiesAsync();
                     size += basicProperties.Size;
                 }
+                ClearCacheLabel.Text = "Calc cache size: " + (i++) + " of " + items.Count + " files";
             }
-            ClearCacheRing.IsActive = false;
-            ClearCacheStatus.Text = (size / 1024 / 1024) + " mb";
+            */
+
+            // кнопки
+            ClearCacheLabel.Text = "Cache size: " + (size / 1024 / 1024) + " mb";
+            CacheCalc.IsEnabled = true;
+            CacheClear.IsEnabled = true;
+            CacheCancel.Visibility = Visibility.Collapsed;
         }
 
-        private void ClearCacheRing_Loaded(object sender, RoutedEventArgs e)
+        private void CacheCancel_Click(object sender, RoutedEventArgs e)
         {
-            CalcCacheSize();
+            isCancel = true;
         }
 
-        private async void ClearCache(object sender, RoutedEventArgs e)
+        private async void CacheClear_Click(object sender, RoutedEventArgs e)
         {
-            ClearCacheRing.IsActive = true;
-            ClearCacheStatus.Text = "";
+            // кнопки
+            CacheCalc.IsEnabled = false;
+            CacheClear.IsEnabled = false;
+            CacheCancel.Visibility = Visibility.Visible;
+            ClearCacheLabel.Text = "Delete files...";
 
-            foreach (IStorageItem item in await ApplicationData.Current.TemporaryFolder.GetItemsAsync())
+            // действие
+            string[] filePaths = Directory.GetFiles(ApplicationData.Current.TemporaryFolder.Path);
+            foreach (string filePath in filePaths)
             {
-                await item.DeleteAsync();
+                File.Delete(filePath);
             }
 
-            ClearCacheRing.IsActive = false;
-            ClearCacheStatus.Text = "0 mb";
+            /*
+            IReadOnlyList<IStorageItem> items = await ApplicationData.Current.TemporaryFolder.GetItemsAsync();
+            int i = 0;
+            foreach (IStorageItem item in items)
+            {
+                if (isCancel)
+                {
+                    isCancel = false;
+                    ClearCacheLabel.Text = "Delete files: canceled";
+                    CacheCalc.IsEnabled = true;
+                    CacheClear.IsEnabled = true;
+                    CacheCancel.Visibility = Visibility.Collapsed;
+                    return;
+                }
+
+                await item.DeleteAsync();
+                ClearCacheLabel.Text = "Remove files: " + (i++) + " of " + items.Count + " files";
+            }*/
+
+            // кнопки
+            ClearCacheLabel.Text = "Cache size: 0 mb";
+            CacheCalc.IsEnabled = true;
+            CacheClear.IsEnabled = true;
+            CacheCancel.Visibility = Visibility.Collapsed;
         }
+
+
         // чистка кэша
     }
 }

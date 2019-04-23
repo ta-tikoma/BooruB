@@ -22,13 +22,16 @@ namespace BooruB.Components
         public double Height = 0;
         public int Column = 0;
 
-        public bool isRender = false;
+        private double PixelWidth = 0;
+        private double PixelHeight = 0;
+
+        public bool isVisible = false;
 
 
         public const string USE = "use";
         public const string UNUSE = "unuse";
 
-        public bool IsVisible(double VerticalOffset)
+        public bool OnScreen(double VerticalOffset)
         {
             if (
                 // нижний край ниже начала экрана
@@ -93,46 +96,68 @@ namespace BooruB.Components
             //storyboard.Children.Add(fadeInThemeAnimation);
         }
 
+        public void ReShow()
+        {
+            ImageComponent.Width = App.Settings.side_size;
+            ImageComponent.Height = Height - MARGIN;
+            ImageComponent.Margin = new Thickness(0, MarginTop, 0, 0);
+            Grid.SetColumn(ImageComponent, Column);
+        }
+
+        const double MARGIN = 4;
+
+        public void CalcHeight()
+        {
+            double _height = App.Settings.side_size;
+            if (PixelWidth != 0)
+            {
+                _height = ((double)App.Settings.side_size / PixelWidth) * PixelHeight;
+            }
+            Height = _height + MARGIN;
+        }
+
         public async Task Show(KeyValuePair<Image, Storyboard> imageStoryboard)
         {
-            if (isRender)
+            if (isVisible)
             {
                 return;
             }
-            isRender = true;
+            isVisible = true;
             this.ImageComponent = imageStoryboard.Key;
 
+            // элемент показан сохраняем его страницу
             Models.Page.Save(ImageData.Page, ImageData.NextPageLink);
 
             BitmapImage _bitmapImage = await GetBitmapImage(ImageData.ThumbnailUrl);
-            //System.Diagnostics.Debug.WriteLine("ImageData.ThumbnailUrl:" + ImageData.ThumbnailUrl);
-            //System.Diagnostics.Debug.WriteLine("PixelWidth:" + _bitmapImage.PixelWidth);
-            //System.Diagnostics.Debug.WriteLine("PixelHeight:" + _bitmapImage.PixelHeight);
-            double _height = App.Settings.side_size;
-            if (_bitmapImage.PixelWidth != 0)
+            
+            // если высота неопределена вычисляем её
+            if (Height == 0)
             {
-                _height = ((double)App.Settings.side_size / (double)_bitmapImage.PixelWidth) * (double)_bitmapImage.PixelHeight;
+                PixelHeight = _bitmapImage.PixelHeight;
+                PixelWidth = _bitmapImage.PixelWidth;
+                CalcHeight();
             }
-            //System.Diagnostics.Debug.WriteLine("Height:" + Height);
-            Height = _height + 4;
 
-            ImageComponent.Height = _height;
+            // параметры изображения
+            ImageComponent.Width = App.Settings.side_size;
+            ImageComponent.Height = Height - MARGIN;
             ImageComponent.Margin = new Thickness(0, MarginTop, 0, 0);
+            Grid.SetColumn(ImageComponent, Column);
             ImageComponent.DataContext = ImageData;
             ImageComponent.Source = _bitmapImage;
+
+            // анимация
             imageStoryboard.Value.Stop();
             imageStoryboard.Value.Begin();
-            //ImageComponent.Opacity = 1;
-            Grid.SetColumn(ImageComponent, Column);
         }
 
         public void Hide()
         {
-            if (!isRender)
+            if (!isVisible)
             {
                 return;
             }
-            isRender = false;
+            isVisible = false;
             //System.Diagnostics.Debug.WriteLine("Hide");
             ImageComponent.Tag = UNUSE;
             ImageComponent.Opacity = 0;
@@ -154,7 +179,48 @@ namespace BooruB.Components
             {
                 ColumnDefinitions.Add(new ColumnDefinition());
             }
-            //System.Diagnostics.Debug.WriteLine("ImageInColumn:");
+        }
+
+        public void OnSizeChanged()
+        {
+            // добавляем нехватающие колонки
+            for (int i = ColumnDefinitions.Count; i < App.Settings.images_in_row; i++)
+            {
+                ColumnDefinitions.Add(new ColumnDefinition());
+            }
+
+            // убираем лишние колонки
+            for (int i = ColumnDefinitions.Count - 1; i >= App.Settings.images_in_row; i--)
+            {
+                ColumnDefinitions.RemoveAt(i);
+            }
+
+            // перещитываем положения
+            List<double> heights = new List<double>();
+            for (int i = 0; i < App.Settings.images_in_row; i++)
+            {
+                heights.Add(0);
+            }
+            foreach (ItemData item in ItemsData)
+            {
+                KeyValuePair<int, double> columnHeight = GetMinColumn(heights);
+                // перещитываем новую высоту учитывая новую ширину
+                item.CalcHeight();
+
+                // заполняем новыми данными
+                heights[columnHeight.Key] += item.Height;
+                item.Column = columnHeight.Key;
+                item.MarginTop = columnHeight.Value;
+
+                // если объект был на экране перерисовываем
+                if (item.isVisible)
+                {
+                    item.ReShow();
+                }
+            }
+
+            // проверяем корректность
+            CheckVisible(VerticalOffset);
         }
 
         // проверка "по высоте"
@@ -196,22 +262,25 @@ namespace BooruB.Components
         }
 
         // возвращает иденкс минимальной колонки и её высоту
-        private KeyValuePair<int, double> GetMinColumn()
+        private KeyValuePair<int, double> GetMinColumn(List<double> heights = null)
         {
             // подготовим высоты
-            List<double> heights = new List<double>();
-            for (int i = 0; i < App.Settings.images_in_row; i++)
+            if (heights == null)
             {
-                heights.Add(0);
+                heights = new List<double>();
+                for (int i = 0; i < App.Settings.images_in_row; i++)
+                {
+                    heights.Add(0);
+                }
+
+                foreach (ItemData data in ItemsData)
+                {
+                    heights[data.Column] += data.Height;
+                }
             }
 
-            foreach (ItemData data in ItemsData)
-            {
-                //System.Diagnostics.Debug.WriteLine("data.Height:" + data.Height);
-                heights[data.Column] += data.Height;
-            }
 
-
+            // вычисляем минимальную
             int colimn = 0;
             double height = heights[colimn];
 
@@ -239,15 +308,15 @@ namespace BooruB.Components
             //System.Diagnostics.Debug.WriteLine("CheckVisible");
             foreach (ItemData data in ItemsData)
             {
-                if (data.IsVisible(VerticalOffset))
+                if (data.OnScreen(VerticalOffset))
                 {
-                    if (!data.isRender)
+                    if (!data.isVisible)
                     {
                         data.Show(GetImage());
                     }
                 } else
                 {
-                    if (data.isRender)
+                    if (data.isVisible)
                     {
                         data.Hide();
                     }
@@ -277,7 +346,6 @@ namespace BooruB.Components
             {
                 VerticalAlignment = VerticalAlignment.Top,
                 HorizontalAlignment = HorizontalAlignment.Left,
-                Width = App.Settings.side_size,
                 Stretch = Windows.UI.Xaml.Media.Stretch.UniformToFill,
                 Tag = ItemData.USE,
                 Opacity = 0
